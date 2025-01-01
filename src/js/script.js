@@ -74,3 +74,6 @@ document.getElementById('contactForm').addEventListener('submit', function(e) {
     const mailtoLink = `mailto:muzaaqi@yahoo.com?subject=Contact from ${name}&body=${message}%0D%0A%0D%0AFrom: ${name} (${email})`;
     window.location.href = mailtoLink;
 });
+
+let audio = document.getElementById('audio');
+audio.volume = 0.1;
