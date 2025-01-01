@@ -115,6 +115,11 @@
     color: #E4405F;
 }
 
+.fa-youtube.icon-grayscale:hover {
+    filter: grayscale(0%);
+    color: #FF0000;
+}
+
 .skill-card {
 background: rgba(255, 255, 255, 0.1);
 backdrop-filter: blur(8px);
