@@ -1,11 +1,13 @@
 import { Button } from "@/components/ui/button";
+import { Github, Instagram, Linkedin, Youtube } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Home() {
   return (
     <div className="bg-background flex min-h-screen items-center justify-center font-sans">
-      <main className="container flex min-h-screen w-full flex-col items-center justify-center">
-        <div className="border-border drop-shadow-primary/20 flex flex-col-reverse gap-2 border-b-2 drop-shadow-lg md:flex-row px-5">
+      <main className="container flex min-h-screen w-full flex-col items-center justify-center space-y-10">
+        <div className="border-border drop-shadow-primary/20 flex flex-col-reverse gap-2 border-b-2 px-5 drop-shadow-lg md:flex-row">
           <Image
             src="/profile.png"
             alt="Description"
@@ -25,6 +27,12 @@ export default function Home() {
             </div>
             <Button>Download CV</Button>
           </div>
+        </div>
+        <div className="flex space-x-6">
+          <Link href="https://github.com/muzaaqi" target="_blank"><Github className="text-muted-foreground/50" /></Link>
+          <Link href="https://instagram.com/muzaaqi_" target="_blank"><Instagram className="text-muted-foreground/50" /></Link>
+          <Link href="https://linkedin.com/in/muzaaqi" target="_blank"><Linkedin className="text-muted-foreground/50" /></Link>
+          <Link href="https://youtube.com/muzaaqi_" target="_blank"><Youtube className="text-muted-foreground/50"></Youtube></Link>
         </div>
       </main>
     </div>
