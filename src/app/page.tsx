@@ -32,7 +32,7 @@ export default function Home() {
           <Link href="https://github.com/muzaaqi" target="_blank"><Github className="text-muted-foreground/50" /></Link>
           <Link href="https://instagram.com/muzaaqi_" target="_blank"><Instagram className="text-muted-foreground/50" /></Link>
           <Link href="https://linkedin.com/in/muzaaqi" target="_blank"><Linkedin className="text-muted-foreground/50" /></Link>
-          <Link href="https://youtube.com/muzaaqi_" target="_blank"><Youtube className="text-muted-foreground/50"></Youtube></Link>
+          <Link href="https://youtube.com/@muzaaqi_" target="_blank"><Youtube className="text-muted-foreground/50"></Youtube></Link>
         </div>
       </main>
     </div>
