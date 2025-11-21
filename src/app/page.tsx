@@ -5,7 +5,7 @@ import Link from "next/link";
 
 export default function Home() {
   return (
-    <main className="container flex min-h-screen w-full flex-col items-center justify-center space-y-10">
+    <main className="container flex min-h-svh w-full flex-col items-center justify-center space-y-10">
       <div className="border-border drop-shadow-primary/20 flex flex-col-reverse gap-2 border-b-2 px-5 drop-shadow-lg md:flex-row">
         <Image src="/profile.png" alt="Description" width={300} height={300} />
         <div className="mb-5 space-y-5 md:self-end md:pl-8">
