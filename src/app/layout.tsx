@@ -37,7 +37,9 @@ export default function RootLayout({
           disableTransitionOnChange
         >
         <Navbar />
+        <div className="bg-background flex min-h-screen items-center justify-center font-sans">
         {children}
+        </div>
         </ThemeProvider>
       </body>
     </html>
