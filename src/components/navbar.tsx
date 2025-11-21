@@ -7,7 +7,7 @@ import { ThemeSwitch } from "./theme-switch";
 const Navbar = () => {
   const currentPath = usePathname();
   return (
-    <div className="absolute right-0 flex h-svh w-15 flex-col items-center justify-center p-4">
+    <div className="fixed right-0 flex h-svh w-15 flex-col items-center justify-center p-4">
       <div className="flex flex-col space-y-6">
         <Link
           href="/"

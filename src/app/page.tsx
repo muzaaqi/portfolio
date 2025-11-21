@@ -1,3 +1,4 @@
+import About from "@/components/about";
 import { Button } from "@/components/ui/button";
 import { Github, Instagram, Linkedin, Youtube } from "lucide-react";
 import Image from "next/image";
@@ -5,7 +6,7 @@ import Link from "next/link";
 
 export default function Home() {
   return (
-    <div className="bg-background flex min-h-screen items-center justify-center font-sans">
+    <div className="bg-background flex flex-col min-h-screen items-center justify-center font-sans">
       <main className="container flex min-h-screen w-full flex-col items-center justify-center space-y-10">
         <div className="border-border drop-shadow-primary/20 flex flex-col-reverse gap-2 border-b-2 px-5 drop-shadow-lg md:flex-row">
           <Image
@@ -35,6 +36,9 @@ export default function Home() {
           <Link href="https://youtube.com/@muzaaqi_" target="_blank"><Youtube className="text-muted-foreground/50"></Youtube></Link>
         </div>
       </main>
+      <section>
+        <About />
+      </section>
     </div>
   );
 }

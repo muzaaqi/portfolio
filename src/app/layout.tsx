@@ -16,7 +16,7 @@ const jetBrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Portfolio",
+  title: "Muhammad Zaki As Shidqi - Portfolio",
   description: "MUZAAQ's Portfolio",
 };
 
