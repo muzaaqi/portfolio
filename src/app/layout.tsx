@@ -16,21 +16,108 @@ const jetBrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Muhammad Zaki As Shidqi - Portfolio",
-  description: "MUZAAQ's Portfolio",
-  icons: {
-    other: [
+  metadataBase: new URL("https://muzaaqi.my.id"),
+
+  title: "Muhammad Zaki As Shidqi",
+  description:
+    "Portfolio of Muhammad Zaki As Shidqi – Frontend Developer, showcasing skills, projects, and professional work.",
+  keywords: [
+    "Muhammad Zaki As Shidqi",
+    "Muzaaqi",
+    "MUZAAQI",
+    "Zaki",
+    "As Shidqi",
+    "Frontend Developer",
+    "Portfolio",
+    "Web Developer",
+    "React",
+    "Next.js",
+    "JavaScript",
+    "TypeScript",
+    "CSS",
+    "HTML",
+    "Digital Creator",
+    "Gamer",
+    "Programmer",
+    "Coding",
+    "Web Design",
+    "UI/UX",
+    "Open Source",
+    "Projects",
+    "Tech Enthusiast",
+    "Software Engineer",
+    "Youtuber",
+  ],
+
+  alternates: {
+    canonical: "https://muzaaqi.my.id",
+  },
+
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+
+  openGraph: {
+    type: "website",
+    url: "https://muzaaqi.my.id",
+    siteName: "Portfolio Muhammad Zaki As Shidqi",
+    title: "Portfolio Muhammad Zaki As Shidqi",
+    description:
+      "Situs portofolio modern dengan koleksi project, pengalaman coding, dan kontak profesional.",
+    images: [
       {
-        rel: "icon",
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Portfolio Preview",
+      },
+    ],
+    locale: "id_ID",
+  },
+
+  twitter: {
+    card: "summary_large_image",
+    title: "Portfolio Muhammad Zaki As Shidqi",
+    description: "Portfolio of Muhammad Zaki As Shidqi – Frontend Developer.",
+    images: ["/og-image.png"],
+  },
+
+  other: {
+    "og:title": "Portfolio Muhammad Zaki As Shidqi",
+    "og:description":
+      "Portfolio of Muhammad Zaki As Shidqi – Frontend Developer.",
+    "og:image": "https://muzaaqi.my.id/og-image.png",
+    "og:image:width": "1200",
+    "og:image:height": "630",
+    "og:image:type": "image/png",
+    "og:url": "https://muzaaqi.my.id",
+    "og:type": "website",
+
+    "og:image:secure_url": "https://muzaaqi.my.id/og-image.png",
+
+    "twitter:image": "https://muzaaqi.my.id/og-image.png",
+  },
+
+  icons: {
+    icon: [
+      {
         url: "/favicon-light.ico",
         media: "(prefers-color-scheme: light)",
       },
       {
-        rel: "icon",
         url: "/favicon-dark.ico",
         media: "(prefers-color-scheme: dark)",
       },
     ],
+    shortcut: ["/favicon-light.ico"],
   },
 };
 
@@ -41,6 +128,25 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Person",
+              name: "Muhammad Zaki As Shidqi",
+              url: "https://muzaaqi.my.id",
+              sameAs: [
+                "https://instagram.com/muzaaqi_",
+                "https://github.com/muzaaqi",
+                "https://www.linkedin.com/in/muzaaqi/",
+                "https://www.youtube.com/@muzaaqi",
+              ],
+            }),
+          }}
+        />
+      </head>
       <body
         className={`${libreBaskervilleSans.variable} ${jetBrainsMono.variable} antialiased`}
       >
@@ -50,10 +156,10 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-        <Navbar />
-        <div className="bg-background flex min-h-screen items-center justify-center font-sans">
-        {children}
-        </div>
+          <Navbar />
+          <div className="bg-background flex min-h-screen items-center justify-center font-sans">
+            {children}
+          </div>
         </ThemeProvider>
       </body>
     </html>
