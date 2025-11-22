@@ -73,7 +73,7 @@ export const metadata: Metadata = {
     description: "Portfolio of Muhammad Zaki As Shidqi – Frontend Developer.",
     images: [
       {
-        url: "/og-image.png",
+        url: "/og-image.webp",
         width: 1200,
         height: 630,
         alt: "Portfolio Preview",
@@ -86,23 +86,23 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Muhammad Zaki As Shidqi",
     description: "Portfolio of Muhammad Zaki As Shidqi – Frontend Developer.",
-    images: ["/og-image.png"],
+    images: ["/og-image.webp"],
   },
 
   other: {
     "og:title": "Muhammad Zaki As Shidqi",
     "og:description":
       "Portfolio of Muhammad Zaki As Shidqi – Frontend Developer.",
-    "og:image": "https://muzaaqi.my.id/og-image.png",
+    "og:image": "https://muzaaqi.my.id/og-image.webp",
     "og:image:width": "1200",
     "og:image:height": "630",
     "og:image:type": "image/png",
     "og:url": "https://muzaaqi.my.id",
     "og:type": "website",
 
-    "og:image:secure_url": "https://muzaaqi.my.id/og-image.png",
+    "og:image:secure_url": "https://muzaaqi.my.id/og-image.webp",
 
-    "twitter:image": "https://muzaaqi.my.id/og-image.png",
+    "twitter:image": "https://muzaaqi.my.id/og-image.webp",
   },
 
   icons: {
