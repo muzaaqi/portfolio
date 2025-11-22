@@ -167,9 +167,9 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <Navbar />
-          <div className="bg-background flex min-h-screen items-center justify-center font-sans">
+          <main className="bg-background flex min-h-screen items-center justify-center font-sans">
             {children}
-          </div>
+          </main>
         </ThemeProvider>
       </body>
     </html>
