@@ -7,7 +7,7 @@ export default function Home() {
   return (
     <main className="container flex h-svh w-full flex-col items-center justify-center space-y-10">
       <div className="border-border drop-shadow-primary/20 flex flex-col-reverse gap-2 border-b-2 px-5 drop-shadow-lg md:flex-row">
-        <Image src="/profile.png" alt="Description" width={300} height={300} />
+        <Image src="/profile.png" alt="profile-picture" width={300} height={300} />
         <div className="mb-5 space-y-5 md:self-end md:pl-8">
           <div>
             <h1 className="text-foreground/80 mb-4 text-5xl font-bold md:text-6xl">
