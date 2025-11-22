@@ -6,7 +6,7 @@ import { Moon, Sun } from 'lucide-react'
 export const ThemeSwitch = () => {
   const { theme, setTheme } = useTheme()
   return (
-    <div className="absolute bottom-4">
+    <div className="absolute bottom-3">
       <Button variant="ghost" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
         {theme === 'dark' ? 
         (<Moon />) : (<Sun />)}

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { House, User, Code, PanelsTopLeft, Mail } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { ThemeSwitch } from "./theme-switch";
+import Logo from "./logo";
 
 const items = [
   { href: "/", icon: <House /> },
@@ -20,6 +21,10 @@ const Navbar = () => {
 
   return (
     <div className="fixed right-0 flex h-svh w-15 flex-col items-center justify-center p-4">
+      <div className="absolute top-0 w-full p-4 flex items-center justify-center">
+        <Logo />
+      </div>
+
       <div className="flex flex-col">
         {items.map((item, i) => {
           let hoverClass = "scale-100";
@@ -36,7 +41,7 @@ const Navbar = () => {
               href={item.href}
               onMouseEnter={() => setHoverIndex(i)}
               onMouseLeave={() => setHoverIndex(null)}
-              className={`hover:text-foreground duration-300 transition-all p-3 ${hoverClass} ${currentPath === item.href ? "scale-125" : "text-muted-foreground/70"} `}
+              className={`hover:text-foreground p-3 transition-all duration-300 ${hoverClass} ${currentPath === item.href ? "scale-125" : "text-muted-foreground/70"} `}
             >
               {item.icon}
             </Link>
@@ -46,6 +51,6 @@ const Navbar = () => {
       <ThemeSwitch />
     </div>
   );
-}
+};
 
 export default Navbar;
