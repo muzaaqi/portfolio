@@ -22,16 +22,16 @@ export default function Home() {
         </div>
       </div>
       <div className="flex space-x-6">
-        <Link href="https://github.com/muzaaqi" target="_blank">
+        <Link href="https://github.com/muzaaqi" target="_blank" rel="noopener noreferrer">
           <Github className="text-muted-foreground/50" />
         </Link>
-        <Link href="https://instagram.com/muzaaqi_" target="_blank">
+        <Link href="https://instagram.com/muzaaqi_" target="_blank" rel="noopener noreferrer">
           <Instagram className="text-muted-foreground/50" />
         </Link>
-        <Link href="https://linkedin.com/in/muzaaqi" target="_blank">
+        <Link href="https://linkedin.com/in/muzaaqi" target="_blank" rel="noopener noreferrer">
           <Linkedin className="text-muted-foreground/50" />
         </Link>
-        <Link href="https://youtube.com/@muzaaqi_" target="_blank">
+        <Link href="https://youtube.com/@muzaaqi_" target="_blank" rel="noopener noreferrer">
           <Youtube className="text-muted-foreground/50"></Youtube>
         </Link>
       </div>

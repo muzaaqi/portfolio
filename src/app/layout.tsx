@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { JetBrains_Mono, Libre_Baskerville } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/navbar";
@@ -19,8 +20,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://muzaaqi.my.id"),
 
   title: "Muhammad Zaki As Shidqi",
-  description:
-    "Portfolio of Muhammad Zaki As Shidqi – Frontend Developer, showcasing skills, projects, and professional work.",
+  description: "Portfolio of Muhammad Zaki As Shidqi – Frontend Developer.",
   keywords: [
     "Muhammad Zaki As Shidqi",
     "Muzaaqi",
@@ -50,7 +50,7 @@ export const metadata: Metadata = {
   ],
 
   alternates: {
-    canonical: "https://muzaaqi.my.id",
+    canonical: "https://www.muzaaqi.my.id",
   },
 
   robots: {
@@ -68,10 +68,9 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     url: "https://muzaaqi.my.id",
-    siteName: "Portfolio Muhammad Zaki As Shidqi",
-    title: "Portfolio Muhammad Zaki As Shidqi",
-    description:
-      "Situs portofolio modern dengan koleksi project, pengalaman coding, dan kontak profesional.",
+    siteName: "Muhammad Zaki As Shidqi",
+    title: "Muhammad Zaki As Shidqi",
+    description: "Portfolio of Muhammad Zaki As Shidqi – Frontend Developer.",
     images: [
       {
         url: "/og-image.png",
@@ -85,13 +84,13 @@ export const metadata: Metadata = {
 
   twitter: {
     card: "summary_large_image",
-    title: "Portfolio Muhammad Zaki As Shidqi",
+    title: "Muhammad Zaki As Shidqi",
     description: "Portfolio of Muhammad Zaki As Shidqi – Frontend Developer.",
     images: ["/og-image.png"],
   },
 
   other: {
-    "og:title": "Portfolio Muhammad Zaki As Shidqi",
+    "og:title": "Muhammad Zaki As Shidqi",
     "og:description":
       "Portfolio of Muhammad Zaki As Shidqi – Frontend Developer.",
     "og:image": "https://muzaaqi.my.id/og-image.png",
@@ -128,8 +127,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <script
+      <body
+        className={`${libreBaskervilleSans.variable} ${jetBrainsMono.variable} antialiased`}
+      >
+        <Script
+          id="person-schema"
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
@@ -146,10 +148,18 @@ export default function RootLayout({
             }),
           }}
         />
-      </head>
-      <body
-        className={`${libreBaskervilleSans.variable} ${jetBrainsMono.variable} antialiased`}
-      >
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXX"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-XXXXXXX');
+          `}
+        </Script>
         <ThemeProvider
           attribute="class"
           defaultTheme="light"
