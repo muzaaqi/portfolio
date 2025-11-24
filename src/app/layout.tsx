@@ -149,15 +149,14 @@ export default function RootLayout({
           }}
         />
         <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXX"
-          strategy="afterInteractive"
+          async src="https://www.googletagmanager.com/gtag/js?id=G-DQ9JB8BVDX"
         />
-        <Script id="google-analytics" strategy="afterInteractive">
+        <Script id="google-analytics">
           {`
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
-            gtag('config', 'G-XXXXXXX');
+            gtag('config', 'G-DQ9JB8BVDX');
           `}
         </Script>
         <ThemeProvider
