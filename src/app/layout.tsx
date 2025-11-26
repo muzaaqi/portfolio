@@ -19,14 +19,14 @@ const jetBrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL("https://muzaaqi.my.id"),
 
-  title: "Muhammad Zaki As Shidqi",
-  description: "Portfolio of Muhammad Zaki As Shidqi – Frontend Developer.",
+  title: "Muhammad Zaki As Shidiqi",
+  description: "Portfolio of Muhammad Zaki As Shidiqi – Frontend Developer.",
   keywords: [
-    "Muhammad Zaki As Shidqi",
+    "Muhammad Zaki As Shidiqi",
     "Muzaaqi",
     "MUZAAQI",
     "Zaki",
-    "As Shidqi",
+    "As Shidiqi",
     "Frontend Developer",
     "Portfolio",
     "Web Developer",
@@ -68,9 +68,9 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     url: "https://muzaaqi.my.id",
-    siteName: "Muhammad Zaki As Shidqi",
-    title: "Muhammad Zaki As Shidqi",
-    description: "Portfolio of Muhammad Zaki As Shidqi – Frontend Developer.",
+    siteName: "Muhammad Zaki As Shidiqi",
+    title: "Muhammad Zaki As Shidiqi",
+    description: "Portfolio of Muhammad Zaki As Shidiqi – Frontend Developer.",
     images: [
       {
         url: "/og-image.webp",
@@ -84,15 +84,15 @@ export const metadata: Metadata = {
 
   twitter: {
     card: "summary_large_image",
-    title: "Muhammad Zaki As Shidqi",
-    description: "Portfolio of Muhammad Zaki As Shidqi – Frontend Developer.",
+    title: "Muhammad Zaki As Shidiqi",
+    description: "Portfolio of Muhammad Zaki As Shidiqi – Frontend Developer.",
     images: ["/og-image.webp"],
   },
 
   other: {
-    "og:title": "Muhammad Zaki As Shidqi",
+    "og:title": "Muhammad Zaki As Shidiqi",
     "og:description":
-      "Portfolio of Muhammad Zaki As Shidqi – Frontend Developer.",
+      "Portfolio of Muhammad Zaki As Shidiqi – Frontend Developer.",
     "og:image": "https://muzaaqi.my.id/og-image.webp",
     "og:image:width": "1200",
     "og:image:height": "630",
@@ -137,7 +137,7 @@ export default function RootLayout({
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "Person",
-              name: "Muhammad Zaki As Shidqi",
+              name: "Muhammad Zaki As Shidiqi",
               url: "https://muzaaqi.my.id",
               sameAs: [
                 "https://instagram.com/muzaaqi_",
@@ -149,7 +149,8 @@ export default function RootLayout({
           }}
         />
         <Script
-          async src="https://www.googletagmanager.com/gtag/js?id=G-DQ9JB8BVDX"
+          async
+          src="https://www.googletagmanager.com/gtag/js?id=G-DQ9JB8BVDX"
         />
         <Script id="google-analytics">
           {`
