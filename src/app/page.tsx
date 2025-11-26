@@ -16,7 +16,7 @@ export default function Home() {
             <h1 className="text-foreground/80 mb-4 text-4xl font-bold md:text-5xl">
               <span className="text-foreground underline">Zaki</span> As Shidiqi
             </h1>
-            <h2 className="font-mono text-2xl">Frontend Developer</h2>
+            <h2 className="font-mono text-xl md:text-2xl">Frontend Developer</h2>
           </div>
           <Button>Download CV</Button>
         </div>
