@@ -9,6 +9,7 @@ import {
   experiences,
   guestbook,
   contactMessages,
+  user,
 } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { revalidateTag } from "next/cache";
@@ -268,5 +269,54 @@ export async function markMessageAsRead(id: number) {
 export async function deleteContactMessage(id: number) {
   await requireAdmin();
   await db.delete(contactMessages).where(eq(contactMessages.id, id));
+  return { success: true };
+}
+
+// ─── User Management ───
+
+export async function updateUserRole(userId: string, role: string) {
+  const session = await requireAdmin();
+  if (userId === session.user.id) {
+    return { success: false, error: "Cannot change your own role." };
+  }
+  await db.update(user).set({ role }).where(eq(user.id, userId));
+  return { success: true };
+}
+
+export async function banUser(
+  userId: string,
+  reason?: string,
+  expiresAt?: Date,
+) {
+  const session = await requireAdmin();
+  if (userId === session.user.id) {
+    return { success: false, error: "Cannot ban yourself." };
+  }
+  await db
+    .update(user)
+    .set({
+      banned: true,
+      banReason: reason ?? null,
+      banExpires: expiresAt ?? null,
+    })
+    .where(eq(user.id, userId));
+  return { success: true };
+}
+
+export async function unbanUser(userId: string) {
+  await requireAdmin();
+  await db
+    .update(user)
+    .set({ banned: false, banReason: null, banExpires: null })
+    .where(eq(user.id, userId));
+  return { success: true };
+}
+
+export async function deleteUser(userId: string) {
+  const session = await requireAdmin();
+  if (userId === session.user.id) {
+    return { success: false, error: "Cannot delete yourself." };
+  }
+  await db.delete(user).where(eq(user.id, userId));
   return { success: true };
 }

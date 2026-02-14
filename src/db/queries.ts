@@ -252,3 +252,9 @@ export async function getRecentMessages(limit = 5) {
     .orderBy(desc(contactMessages.createdAt))
     .limit(limit);
 }
+
+// ─── Users (admin only) ───
+
+export async function getAllUsers() {
+  return db.select().from(user).orderBy(desc(user.createdAt));
+}

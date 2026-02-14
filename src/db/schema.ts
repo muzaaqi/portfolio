@@ -259,3 +259,5 @@ export type NewGuestbookLike = typeof guestbookLikes.$inferInsert;
 
 export type ContactMessage = typeof contactMessages.$inferSelect;
 export type NewContactMessage = typeof contactMessages.$inferInsert;
+
+export type User = typeof user.$inferSelect;

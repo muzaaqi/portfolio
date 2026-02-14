@@ -10,6 +10,7 @@ import {
   Mail,
   Link2,
   LogOut,
+  Users,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -28,16 +29,18 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { signOut } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
+import { ThemeSwitch } from "@/components/theme-switch";
 
 const navItems = [
-  { href: "/admin", icon: LayoutDashboard, label: "Dashboard" },
-  { href: "/admin/profile", icon: User, label: "Profile" },
-  { href: "/admin/socials", icon: Link2, label: "Social Links" },
-  { href: "/admin/projects", icon: FolderKanban, label: "Projects" },
-  { href: "/admin/skills", icon: Zap, label: "Skills" },
-  { href: "/admin/experience", icon: Briefcase, label: "Experience" },
-  { href: "/admin/guestbook", icon: MessageSquare, label: "Guestbook" },
-  { href: "/admin/messages", icon: Mail, label: "Messages" },
+  { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+  { href: "/dashboard/profile", icon: User, label: "Profile" },
+  { href: "/dashboard/socials", icon: Link2, label: "Social Links" },
+  { href: "/dashboard/projects", icon: FolderKanban, label: "Projects" },
+  { href: "/dashboard/skills", icon: Zap, label: "Skills" },
+  { href: "/dashboard/experience", icon: Briefcase, label: "Experience" },
+  { href: "/dashboard/guestbook", icon: MessageSquare, label: "Guestbook" },
+  { href: "/dashboard/messages", icon: Mail, label: "Messages" },
+  { href: "/dashboard/users", icon: Users, label: "Users" },
 ];
 
 interface AdminSidebarProps {
@@ -55,7 +58,10 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
   return (
     <Sidebar>
       <SidebarHeader className="border-b p-4">
-        <h2 className="text-lg font-bold">Admin Panel</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-bold">Admin Panel</h2>
+          <ThemeSwitch />
+        </div>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
@@ -67,8 +73,8 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
                   <SidebarMenuButton
                     asChild
                     isActive={
-                      item.href === "/admin"
-                        ? pathname === "/admin"
+                      item.href === "/dashboard"
+                        ? pathname === "/dashboard"
                         : pathname.startsWith(item.href)
                     }
                   >
