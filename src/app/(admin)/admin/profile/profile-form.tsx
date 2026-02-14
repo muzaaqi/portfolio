@@ -72,7 +72,7 @@ export function ProfileForm({ profile }: ProfileFormProps) {
                 onChange={(e) =>
                   setFormData((d) => ({ ...d, title: e.target.value }))
                 }
-                placeholder="e.g. Frontend Developer"
+                placeholder="e.g. Fullstack Developer"
                 required
               />
             </div>

@@ -21,18 +21,18 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://muzaaqi.my.id"),
 
   title: {
-    default: "Muhammad Zaki As Shidiqi – Frontend Developer Portfolio",
+    default: "Muhammad Zaki As Shidiqi",
     template: "%s | Muhammad Zaki As Shidiqi",
   },
   description:
-    "Portfolio of Muhammad Zaki As Shidiqi – Frontend Developer specializing in React, Next.js, and TypeScript. View projects, skills, and experience.",
+    "Portfolio of Muhammad Zaki As Shidiqi – Fullstack Developer specializing in React, Next.js, and TypeScript. View projects, skills, and experience.",
   keywords: [
     "Muhammad Zaki As Shidiqi",
     "Muzaaqi",
     "MUZAAQI",
     "Zaki",
     "As Shidiqi",
-    "Frontend Developer",
+    "Fullstack Developer",
     "Portfolio",
     "Web Developer",
     "React",
@@ -78,9 +78,9 @@ export const metadata: Metadata = {
     type: "website",
     url: "https://muzaaqi.my.id",
     siteName: "Muhammad Zaki As Shidiqi",
-    title: "Muhammad Zaki As Shidiqi – Frontend Developer Portfolio",
+    title: "Muhammad Zaki As Shidiqi – Fullstack Developer Portfolio",
     description:
-      "Portfolio of Muhammad Zaki As Shidiqi – Frontend Developer specializing in React, Next.js, and TypeScript.",
+      "Portfolio of Muhammad Zaki As Shidiqi – Fullstack Developer specializing in React, Next.js, and TypeScript.",
     images: [
       {
         url: "/og-image.webp",
@@ -95,9 +95,9 @@ export const metadata: Metadata = {
 
   twitter: {
     card: "summary_large_image",
-    title: "Muhammad Zaki As Shidiqi – Frontend Developer Portfolio",
+    title: "Muhammad Zaki As Shidiqi – Fullstack Developer Portfolio",
     description:
-      "Portfolio of Muhammad Zaki As Shidiqi – Frontend Developer specializing in React, Next.js, and TypeScript.",
+      "Portfolio of Muhammad Zaki As Shidiqi – Fullstack Developer specializing in React, Next.js, and TypeScript.",
     images: [
       {
         url: "/og-image.webp",
@@ -144,9 +144,9 @@ export default function RootLayout({
               alternateName: "Muzaaqi",
               url: "https://muzaaqi.my.id",
               image: "https://muzaaqi.my.id/profile.webp",
-              jobTitle: "Frontend Developer",
+              jobTitle: "Fullstack Developer",
               description:
-                "Frontend Developer specializing in React, Next.js, and TypeScript.",
+                "Fullstack Developer specializing in React, Next.js, and TypeScript.",
               sameAs: [
                 "https://instagram.com/muzaaqi_",
                 "https://github.com/muzaaqi",
@@ -166,7 +166,7 @@ export default function RootLayout({
               name: "Muhammad Zaki As Shidiqi Portfolio",
               url: "https://muzaaqi.my.id",
               description:
-                "Portfolio of Muhammad Zaki As Shidiqi – Frontend Developer specializing in React, Next.js, and TypeScript.",
+                "Portfolio of Muhammad Zaki As Shidiqi – Fullstack Developer specializing in React, Next.js, and TypeScript.",
               author: {
                 "@type": "Person",
                 name: "Muhammad Zaki As Shidiqi",

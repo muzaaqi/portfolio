@@ -2,10 +2,10 @@ import { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Muhammad Zaki As Shidiqi – Portfolio",
+    name: "Muhammad Zaki As Shidiqi",
     short_name: "Muzaaqi",
     description:
-      "Portfolio of Muhammad Zaki As Shidiqi – Frontend Developer specializing in React, Next.js, and TypeScript.",
+      "Portfolio of Muhammad Zaki As Shidiqi – Fullstack Developer specializing in React, Next.js, and TypeScript.",
     start_url: "/",
     display: "standalone",
     background_color: "#ffffff",
