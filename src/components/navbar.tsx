@@ -73,7 +73,9 @@ const Navbar = () => {
 
       {/* Mobile: Top bar + Sheet */}
       <div className="bg-background/80 fixed top-0 right-0 left-0 z-50 flex items-center justify-between border-b p-3 backdrop-blur-sm md:hidden">
-        <Logo />
+        <div className="size-10">
+          <Logo />
+        </div>
         <div className="flex items-center gap-2">
           <ThemeSwitch />
           <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
