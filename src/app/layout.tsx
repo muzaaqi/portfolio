@@ -20,8 +20,12 @@ const jetBrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL("https://muzaaqi.my.id"),
 
-  title: "Muhammad Zaki As Shidiqi",
-  description: "Portfolio of Muhammad Zaki As Shidiqi – Frontend Developer.",
+  title: {
+    default: "Muhammad Zaki As Shidiqi – Frontend Developer Portfolio",
+    template: "%s | Muhammad Zaki As Shidiqi",
+  },
+  description:
+    "Portfolio of Muhammad Zaki As Shidiqi – Frontend Developer specializing in React, Next.js, and TypeScript. View projects, skills, and experience.",
   keywords: [
     "Muhammad Zaki As Shidiqi",
     "Muzaaqi",
@@ -49,9 +53,13 @@ export const metadata: Metadata = {
     "Software Engineer",
     "Youtuber",
   ],
+  authors: [{ name: "Muhammad Zaki As Shidiqi", url: "https://muzaaqi.my.id" }],
+  creator: "Muhammad Zaki As Shidiqi",
+  publisher: "Muhammad Zaki As Shidiqi",
+  category: "technology",
 
   alternates: {
-    canonical: "https://www.muzaaqi.my.id",
+    canonical: "https://muzaaqi.my.id",
   },
 
   robots: {
@@ -70,14 +78,16 @@ export const metadata: Metadata = {
     type: "website",
     url: "https://muzaaqi.my.id",
     siteName: "Muhammad Zaki As Shidiqi",
-    title: "Muhammad Zaki As Shidiqi",
-    description: "Portfolio of Muhammad Zaki As Shidiqi – Frontend Developer.",
+    title: "Muhammad Zaki As Shidiqi – Frontend Developer Portfolio",
+    description:
+      "Portfolio of Muhammad Zaki As Shidiqi – Frontend Developer specializing in React, Next.js, and TypeScript.",
     images: [
       {
         url: "/og-image.webp",
         width: 1200,
         height: 630,
-        alt: "Portfolio Preview",
+        alt: "Muhammad Zaki As Shidiqi – Portfolio Preview",
+        type: "image/webp",
       },
     ],
     locale: "id_ID",
@@ -85,25 +95,17 @@ export const metadata: Metadata = {
 
   twitter: {
     card: "summary_large_image",
-    title: "Muhammad Zaki As Shidiqi",
-    description: "Portfolio of Muhammad Zaki As Shidiqi – Frontend Developer.",
-    images: ["/og-image.webp"],
-  },
-
-  other: {
-    "og:title": "Muhammad Zaki As Shidiqi",
-    "og:description":
-      "Portfolio of Muhammad Zaki As Shidiqi – Frontend Developer.",
-    "og:image": "https://muzaaqi.my.id/og-image.webp",
-    "og:image:width": "1200",
-    "og:image:height": "630",
-    "og:image:type": "image/png",
-    "og:url": "https://muzaaqi.my.id",
-    "og:type": "website",
-
-    "og:image:secure_url": "https://muzaaqi.my.id/og-image.webp",
-
-    "twitter:image": "https://muzaaqi.my.id/og-image.webp",
+    title: "Muhammad Zaki As Shidiqi – Frontend Developer Portfolio",
+    description:
+      "Portfolio of Muhammad Zaki As Shidiqi – Frontend Developer specializing in React, Next.js, and TypeScript.",
+    images: [
+      {
+        url: "/og-image.webp",
+        width: 1200,
+        height: 630,
+        alt: "Muhammad Zaki As Shidiqi – Portfolio Preview",
+      },
+    ],
   },
 
   icons: {
@@ -139,13 +141,53 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "Person",
               name: "Muhammad Zaki As Shidiqi",
+              alternateName: "Muzaaqi",
               url: "https://muzaaqi.my.id",
+              image: "https://muzaaqi.my.id/profile.webp",
+              jobTitle: "Frontend Developer",
+              description:
+                "Frontend Developer specializing in React, Next.js, and TypeScript.",
               sameAs: [
                 "https://instagram.com/muzaaqi_",
                 "https://github.com/muzaaqi",
                 "https://www.linkedin.com/in/muzaaqi/",
                 "https://www.youtube.com/@muzaaqi",
               ],
+            }),
+          }}
+        />
+        <Script
+          id="website-schema"
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              name: "Muhammad Zaki As Shidiqi Portfolio",
+              url: "https://muzaaqi.my.id",
+              description:
+                "Portfolio of Muhammad Zaki As Shidiqi – Frontend Developer specializing in React, Next.js, and TypeScript.",
+              author: {
+                "@type": "Person",
+                name: "Muhammad Zaki As Shidiqi",
+              },
+            }),
+          }}
+        />
+        <Script
+          id="profile-page-schema"
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "ProfilePage",
+              mainEntity: {
+                "@type": "Person",
+                name: "Muhammad Zaki As Shidiqi",
+                url: "https://muzaaqi.my.id",
+              },
+              dateCreated: "2024-01-01",
+              dateModified: new Date().toISOString().split("T")[0],
             }),
           }}
         />

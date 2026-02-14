@@ -1,11 +1,13 @@
 import { MetadataRoute } from "next";
 
+const BASE_URL = "https://muzaaqi.my.id";
+
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
     {
-      url: "https://muzaaqi.my.id",
+      url: BASE_URL,
       lastModified: new Date().toISOString(),
-      changeFrequency: "monthly",
+      changeFrequency: "weekly",
       priority: 1,
     },
   ];
