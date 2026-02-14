@@ -32,42 +32,42 @@ export default async function AdminDashboard() {
       label: "Projects",
       value: stats.projects,
       icon: FolderKanban,
-      href: "/admin/projects",
+      href: "/dashboard/projects",
       color: "text-blue-500",
     },
     {
       label: "Skills",
       value: stats.skills,
       icon: Zap,
-      href: "/admin/skills",
+      href: "/dashboard/skills",
       color: "text-yellow-500",
     },
     {
       label: "Guestbook Entries",
       value: stats.guestbookEntries,
       icon: MessageSquare,
-      href: "/admin/guestbook",
+      href: "/dashboard/guestbook",
       color: "text-green-500",
     },
     {
       label: "Total Likes",
       value: stats.totalLikes,
       icon: Heart,
-      href: "/admin/guestbook",
+      href: "/dashboard/guestbook",
       color: "text-red-500",
     },
     {
       label: "Unread Messages",
       value: stats.unreadMessages,
       icon: Mail,
-      href: "/admin/messages",
+      href: "/dashboard/messages",
       color: "text-purple-500",
     },
     {
       label: "Registered Users",
       value: stats.totalUsers,
       icon: Users,
-      href: "/admin",
+      href: "/dashboard/users",
       color: "text-orange-500",
     },
   ];
@@ -126,7 +126,7 @@ export default async function AdminDashboard() {
               Recent Guestbook
             </CardTitle>
             <Link
-              href="/admin/guestbook"
+              href="/dashboard/guestbook"
               className="text-muted-foreground hover:text-foreground text-sm transition-colors"
             >
               View all →
@@ -184,7 +184,7 @@ export default async function AdminDashboard() {
               Recent Messages
             </CardTitle>
             <Link
-              href="/admin/messages"
+              href="/dashboard/messages"
               className="text-muted-foreground hover:text-foreground text-sm transition-colors"
             >
               View all →

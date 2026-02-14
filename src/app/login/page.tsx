@@ -31,7 +31,7 @@ export default function LoginPage() {
       if (error) {
         toast.error(error.message ?? "Invalid credentials.");
       } else {
-        router.push("/admin");
+        router.push("/dashboard");
       }
     } catch {
       toast.error("Login failed.");
@@ -43,7 +43,7 @@ export default function LoginPage() {
   async function handleOAuth(provider: "github" | "google") {
     await signIn.social({
       provider,
-      callbackURL: "/admin",
+      callbackURL: "/dashboard",
     });
   }
 

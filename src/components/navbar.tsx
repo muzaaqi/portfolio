@@ -87,7 +87,7 @@ const Navbar = () => {
             <Tooltip>
               <TooltipTrigger asChild>
                 <Link
-                  href="/admin"
+                  href="/dashboard"
                   className="text-muted-foreground/70 hover:text-foreground transition-colors"
                 >
                   <LayoutDashboard className="size-5" />
@@ -135,7 +135,7 @@ const Navbar = () => {
                 ))}
                 {isAdmin && (
                   <Link
-                    href="/admin"
+                    href="/dashboard"
                     onClick={() => setSheetOpen(false)}
                     className="text-muted-foreground hover:bg-accent/50 flex items-center gap-3 rounded-md px-4 py-3 text-left transition-colors"
                   >
