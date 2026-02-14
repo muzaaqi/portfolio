@@ -28,7 +28,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   Select,
@@ -48,7 +47,9 @@ import {
   Shield,
   ShieldOff,
   ShieldCheck,
-  UserCog,
+  UserIcon,
+  Ban,
+  CircleCheck,
 } from "lucide-react";
 import { toast } from "sonner";
 import { updateUserRole, banUser, unbanUser, deleteUser } from "../actions";
@@ -65,9 +66,6 @@ export function UsersClient({ users }: UsersClientProps) {
   const [banReason, setBanReason] = useState("");
   const [banDialogOpen, setBanDialogOpen] = useState(false);
   const [banTarget, setBanTarget] = useState<User | null>(null);
-  const [roleDialogOpen, setRoleDialogOpen] = useState(false);
-  const [roleTarget, setRoleTarget] = useState<User | null>(null);
-  const [selectedRole, setSelectedRole] = useState("user");
 
   const filtered = users.filter(
     (u) =>
@@ -78,26 +76,11 @@ export function UsersClient({ users }: UsersClientProps) {
   const admins = filtered.filter((u) => u.role === "admin").length;
   const banned = filtered.filter((u) => u.banned).length;
 
-  function getRoleBadge(u: User) {
-    if (u.role === "admin") {
-      return (
-        <Badge className="border-0 bg-purple-500/10 text-purple-500 hover:bg-purple-500/20">
-          <ShieldCheck className="mr-1 size-3" />
-          Admin
-        </Badge>
-      );
-    }
-    return (
-      <Badge variant="secondary" className="text-xs">
-        User
-      </Badge>
-    );
-  }
-
   function getStatusBadge(u: User) {
     if (u.banned) {
       return (
         <Badge variant="destructive" className="text-xs">
+          <Ban className="size-3" />
           Banned
         </Badge>
       );
@@ -107,22 +90,20 @@ export function UsersClient({ users }: UsersClientProps) {
         variant="outline"
         className="border-green-500/30 text-xs text-green-600"
       >
+        <CircleCheck className="size-3" />
         Active
       </Badge>
     );
   }
 
-  async function handleRoleChange() {
-    if (!roleTarget) return;
-    const result = await updateUserRole(roleTarget.id, selectedRole);
+  async function handleRoleChange(userId: string, newRole: string) {
+    const result = await updateUserRole(userId, newRole);
     if (result.success) {
-      toast.success(`Role updated to "${selectedRole}".`);
+      toast.success(`Role updated to "${newRole}".`);
       router.refresh();
     } else {
       toast.error("error" in result ? result.error : "Failed to update role.");
     }
-    setRoleDialogOpen(false);
-    setRoleTarget(null);
   }
 
   async function handleBan() {
@@ -207,7 +188,30 @@ export function UsersClient({ users }: UsersClientProps) {
                   </div>
                 </div>
               </TableCell>
-              <TableCell>{getRoleBadge(u)}</TableCell>
+              <TableCell>
+                <Select
+                  value={u.role ?? "user"}
+                  onValueChange={(value) => handleRoleChange(u.id, value)}
+                >
+                  <SelectTrigger className="h-8 w-28">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="user">
+                      <div className="flex items-center gap-1.5">
+                        <UserIcon className="size-3" />
+                        User
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="admin">
+                      <div className="flex items-center gap-1.5">
+                        <ShieldCheck className="size-3 text-purple-500" />
+                        Admin
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </TableCell>
               <TableCell>
                 <div className="flex flex-col gap-1">
                   {getStatusBadge(u)}
@@ -223,20 +227,6 @@ export function UsersClient({ users }: UsersClientProps) {
               </TableCell>
               <TableCell>
                 <div className="flex gap-1">
-                  {/* Change Role */}
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    title="Change role"
-                    onClick={() => {
-                      setRoleTarget(u);
-                      setSelectedRole(u.role ?? "user");
-                      setRoleDialogOpen(true);
-                    }}
-                  >
-                    <UserCog className="size-4" />
-                  </Button>
-
                   {/* Ban / Unban */}
                   {u.banned ? (
                     <Button
@@ -305,36 +295,6 @@ export function UsersClient({ users }: UsersClientProps) {
           )}
         </TableBody>
       </Table>
-
-      {/* Role Change Dialog */}
-      <Dialog open={roleDialogOpen} onOpenChange={setRoleDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Change Role</DialogTitle>
-            <DialogDescription>
-              Update the role for &quot;{roleTarget?.name}&quot;.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3 py-2">
-            <Label>Role</Label>
-            <Select value={selectedRole} onValueChange={setSelectedRole}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="user">User</SelectItem>
-                <SelectItem value="admin">Admin</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setRoleDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleRoleChange}>Save</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* Ban Dialog */}
       <Dialog open={banDialogOpen} onOpenChange={setBanDialogOpen}>
