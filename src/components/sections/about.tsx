@@ -1,6 +1,5 @@
 "use client";
 
-import { useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Briefcase, GraduationCap } from "lucide-react";
 import { motion } from "motion/react";
