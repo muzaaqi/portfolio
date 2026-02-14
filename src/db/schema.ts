@@ -156,6 +156,7 @@ export const skills = pgTable("skills", {
   id: serial("id").primaryKey(),
   name: varchar("name", { length: 100 }).notNull(),
   icon: varchar("icon", { length: 100 }),
+  description: varchar("description", { length: 255 }),
   category: skillCategoryEnum("category").default("other"),
   proficiency: integer("proficiency").default(50),
   sortOrder: integer("sort_order").default(0),

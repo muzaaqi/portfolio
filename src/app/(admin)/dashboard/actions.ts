@@ -148,6 +148,7 @@ export async function deleteProject(id: number) {
 export async function createSkill(data: {
   name: string;
   icon?: string;
+  description?: string;
   category?:
     | "language"
     | "framework"
@@ -169,6 +170,7 @@ export async function updateSkill(
   data: {
     name?: string;
     icon?: string;
+    description?: string;
     category?:
       | "language"
       | "framework"

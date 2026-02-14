@@ -15,6 +15,13 @@
       "when": 1771088120665,
       "tag": "0001_refactor_database",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1771091387321,
+      "tag": "0002_add_skill_description",
+      "breakpoints": true
     }
   ]
 }

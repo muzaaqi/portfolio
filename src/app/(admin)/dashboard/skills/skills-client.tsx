@@ -191,6 +191,7 @@ function SkillForm({
     name: skill?.name ?? "",
     category: skill?.category ?? "language",
     icon: skill?.icon ?? "",
+    description: skill?.description ?? "",
     sortOrder: skill?.sortOrder ?? 0,
   });
 
@@ -263,6 +264,17 @@ function SkillForm({
             <SelectItem value="other">Other</SelectItem>
           </SelectContent>
         </Select>
+      </div>
+      <div className="space-y-2">
+        <Label>Description</Label>
+        <Input
+          value={form.description}
+          onChange={(e) =>
+            setForm((f) => ({ ...f, description: e.target.value }))
+          }
+          placeholder="Short description shown on hover"
+          maxLength={255}
+        />
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
