@@ -30,6 +30,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { signOut } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { ThemeSwitch } from "@/components/theme-switch";
+import Logo from "../logo";
 
 const navItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
@@ -59,7 +60,9 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
     <Sidebar>
       <SidebarHeader className="border-b p-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold">Admin Panel</h2>
+          <Link href="/">
+            <Logo className="size-15" />
+          </Link>
           <ThemeSwitch />
         </div>
       </SidebarHeader>

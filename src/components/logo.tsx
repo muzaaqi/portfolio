@@ -1,4 +1,4 @@
-const Logo = () => {
+const Logo = ({ className }: { className?: string }) => {
   return (
     <svg
       version="1.1"
@@ -8,6 +8,7 @@ const Logo = () => {
       y="0px"
       width="100%"
       viewBox="0 0 1024 1024"
+      className={className}
     >
       <path
         fill="currentColor"
