@@ -13,10 +13,11 @@ import {
   Heart,
   ChevronDown,
   ArrowUpDown,
+  LogOut,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { toast } from "sonner";
-import { signIn, useSession } from "@/lib/auth-client";
+import { signIn, signOut, useSession } from "@/lib/auth-client";
 import {
   postGuestbookMessage,
   deleteGuestbookMessage,
@@ -202,6 +203,13 @@ export function GuestbookSection({
                 </AvatarFallback>
               </Avatar>
               <span className="text-sm font-medium">{session.user.name}</span>
+              <button
+                onClick={() => signOut()}
+                className="text-muted-foreground hover:text-foreground ml-auto transition-colors"
+                title="Sign out"
+              >
+                <LogOut className="size-4" />
+              </button>
             </div>
             <Textarea
               value={message}
