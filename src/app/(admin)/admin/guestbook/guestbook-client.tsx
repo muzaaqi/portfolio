@@ -21,12 +21,14 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Trash2 } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Trash2, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { approveGuestbookEntry, deleteGuestbookEntry } from "../actions";
+import { deleteGuestbookEntry } from "../actions";
 import type { GuestbookEntry } from "@/db/schema";
 import { useRouter } from "next/navigation";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useState } from "react";
 
 interface GuestbookClientProps {
   entries: GuestbookEntry[];
@@ -34,119 +36,127 @@ interface GuestbookClientProps {
 
 export function GuestbookClient({ entries }: GuestbookClientProps) {
   const router = useRouter();
+  const [search, setSearch] = useState("");
 
-  const pending = entries.filter((e) => !e.isApproved);
-  const approved = entries.filter((e) => e.isApproved);
+  const filtered = entries.filter(
+    (e) =>
+      e.authorName.toLowerCase().includes(search.toLowerCase()) ||
+      e.message.toLowerCase().includes(search.toLowerCase()),
+  );
 
-  function renderTable(items: GuestbookEntry[], showApprove: boolean) {
-    return (
+  const comments = filtered.filter((e) => !e.parentId).length;
+  const replies = filtered.filter((e) => !!e.parentId).length;
+
+  return (
+    <div>
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold">Guestbook</h1>
+        <p className="text-muted-foreground mt-1 text-sm">
+          {entries.length} entries — {comments} comments, {replies} replies
+        </p>
+      </div>
+
+      {/* Search */}
+      <div className="relative mb-4 max-w-sm">
+        <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+        <Input
+          placeholder="Search by author or message..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="pl-9"
+        />
+      </div>
+
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead>Author</TableHead>
             <TableHead>Message</TableHead>
+            <TableHead>Type</TableHead>
             <TableHead>Date</TableHead>
-            <TableHead className="w-24">Actions</TableHead>
+            <TableHead className="w-16">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {items.map((entry) => (
+          {filtered.map((entry) => (
             <TableRow key={entry.id}>
-              <TableCell className="font-medium">
-                {entry.userId ?? "Anonymous"}
+              <TableCell>
+                <div className="flex items-center gap-2">
+                  <Avatar className="size-6">
+                    <AvatarImage src={entry.authorAvatarUrl ?? ""} />
+                    <AvatarFallback className="text-xs">
+                      {entry.authorName?.charAt(0) ?? "?"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="text-sm font-medium">
+                    {entry.authorName ?? "Anonymous"}
+                  </span>
+                </div>
               </TableCell>
-              <TableCell className="max-w-md">{entry.message}</TableCell>
-              <TableCell className="text-sm">
+              <TableCell className="max-w-md truncate text-sm">
+                {entry.message}
+              </TableCell>
+              <TableCell>
+                {entry.parentId ? (
+                  <Badge variant="outline" className="text-xs">
+                    Reply
+                  </Badge>
+                ) : (
+                  <Badge variant="secondary" className="text-xs">
+                    Comment
+                  </Badge>
+                )}
+              </TableCell>
+              <TableCell className="text-muted-foreground text-sm">
                 {entry.createdAt
                   ? new Date(entry.createdAt).toLocaleDateString()
                   : "—"}
               </TableCell>
               <TableCell>
-                <div className="flex gap-1">
-                  {showApprove && (
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      onClick={async () => {
-                        await approveGuestbookEntry(entry.id);
-                        toast.success("Approved.");
-                        router.refresh();
-                      }}
-                    >
-                      <CheckCircle className="size-4 text-green-600" />
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="ghost" size="icon-sm">
+                      <Trash2 className="size-4" />
                     </Button>
-                  )}
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="ghost" size="icon-sm">
-                        <Trash2 className="size-4" />
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Delete entry?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          This action cannot be undone.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={async () => {
-                            await deleteGuestbookEntry(entry.id);
-                            toast.success("Deleted.");
-                            router.refresh();
-                          }}
-                        >
-                          Delete
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </div>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete entry?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        {entry.parentId
+                          ? "This will delete this reply."
+                          : "This will delete this comment and all its replies."}
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={async () => {
+                          await deleteGuestbookEntry(entry.id);
+                          toast.success("Deleted.");
+                          router.refresh();
+                        }}
+                      >
+                        Delete
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </TableCell>
             </TableRow>
           ))}
-          {items.length === 0 && (
+          {filtered.length === 0 && (
             <TableRow>
               <TableCell
-                colSpan={4}
-                className="text-muted-foreground text-center"
+                colSpan={5}
+                className="text-muted-foreground py-8 text-center"
               >
-                No entries.
+                {search ? "No matching entries." : "No guestbook entries yet."}
               </TableCell>
             </TableRow>
           )}
         </TableBody>
       </Table>
-    );
-  }
-
-  return (
-    <div>
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">Guestbook Moderation</h1>
-      </div>
-
-      <Tabs defaultValue="pending">
-        <TabsList>
-          <TabsTrigger value="pending">
-            Pending
-            {pending.length > 0 && (
-              <Badge variant="destructive" className="ml-2">
-                {pending.length}
-              </Badge>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="approved">
-            Approved ({approved.length})
-          </TabsTrigger>
-        </TabsList>
-        <TabsContent value="pending">{renderTable(pending, true)}</TabsContent>
-        <TabsContent value="approved">
-          {renderTable(approved, false)}
-        </TabsContent>
-      </Tabs>
     </div>
   );
 }
