@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import Script from "next/script";
-import { JetBrains_Mono, Libre_Baskerville } from "next/font/google";
+import { JetBrains_Mono, Inter } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/components/navbar";
+import { Navbar } from "@/components";
 import { ThemeProvider } from "next-themes";
 
-const libreBaskervilleSans = Libre_Baskerville({
+const inter = Inter({
   weight: "400",
-  variable: "--font-libre-baskerville",
+  variable: "--font-inter",
   subsets: ["latin"],
 });
 
@@ -128,7 +128,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${libreBaskervilleSans.variable} ${jetBrainsMono.variable} antialiased`}
+        className={`${inter.variable} ${jetBrainsMono.variable} antialiased`}
       >
         <Script
           id="person-schema"
