@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import { JetBrains_Mono, Inter } from "next/font/google";
 import "./globals.css";
-import { Navbar } from "@/components";
 import { ThemeProvider } from "next-themes";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { Toaster } from "@/components/ui/sonner";
 
 const inter = Inter({
   weight: "400",
@@ -166,10 +167,8 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <Navbar />
-          <main className="bg-background flex min-h-screen items-center justify-center font-sans">
-            {children}
-          </main>
+          <TooltipProvider>{children}</TooltipProvider>
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>
