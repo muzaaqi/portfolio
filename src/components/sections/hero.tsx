@@ -84,7 +84,7 @@ export function HeroSection({ profile, socialLinks }: HeroSectionProps) {
       <div className="border-border drop-shadow-primary/20 flex flex-col-reverse gap-2 border-b-2 px-5 drop-shadow-lg md:flex-row">
         <div ref={imageRef}>
           <Image
-            src={profile?.profileImageUrl ?? "/profile.png"}
+            src={profile?.profileImageUrl ?? "/profile.webp"}
             alt="profile-picture"
             width={300}
             height={300}
