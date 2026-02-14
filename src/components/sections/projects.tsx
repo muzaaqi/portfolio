@@ -60,7 +60,7 @@ export function ProjectsSection({ projects }: ProjectsSectionProps) {
 
 function ProjectCard({ project }: { project: Project }) {
   return (
-    <Card className="group border-border flex h-full flex-col overflow-hidden transition-shadow hover:shadow-lg">
+    <Card className="group border-border flex h-full flex-col overflow-hidden transition-shadow hover:shadow-lg pt-0">
       {project.imageUrl && (
         <div className="relative aspect-video overflow-hidden">
           <Image
