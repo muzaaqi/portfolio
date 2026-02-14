@@ -1,12 +1,13 @@
 "use server";
 
 import { db } from "@/db";
-import { contactMessages, guestbook } from "@/db/schema";
+import { contactMessages, guestbook, guestbookLikes } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { revalidateTag } from "next/cache";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { z } from "zod/v4";
+import { getGuestbookReplies } from "@/db/queries";
 
 function invalidateTag(tag: string) {
   revalidateTag(tag, { expire: 0 });
@@ -68,7 +69,7 @@ export async function postGuestbookMessage(message: string) {
       authorEmail: session.user.email,
       authorAvatarUrl: session.user.image ?? null,
       message: message.trim(),
-      isApproved: false,
+      isApproved: true,
     });
     invalidateTag("guestbook");
     return { success: true };
@@ -95,4 +96,83 @@ export async function deleteGuestbookMessage(id: number) {
   } catch {
     return { success: false, error: "Failed to delete message." };
   }
+}
+
+export async function postGuestbookReply(parentId: number, message: string) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session) {
+    return { success: false, error: "You must be signed in." };
+  }
+
+  if (!message.trim()) {
+    return { success: false, error: "Reply cannot be empty." };
+  }
+
+  try {
+    await db.insert(guestbook).values({
+      parentId,
+      userId: session.user.id,
+      authorName: session.user.name,
+      authorEmail: session.user.email,
+      authorAvatarUrl: session.user.image ?? null,
+      message: message.trim(),
+      isApproved: true,
+    });
+    invalidateTag("guestbook");
+    return { success: true };
+  } catch {
+    return { success: false, error: "Failed to post reply." };
+  }
+}
+
+export async function toggleGuestbookLike(entryId: number) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session) {
+    return { success: false as const, error: "You must be signed in." };
+  }
+
+  try {
+    const existing = await db
+      .select()
+      .from(guestbookLikes)
+      .where(
+        and(
+          eq(guestbookLikes.entryId, entryId),
+          eq(guestbookLikes.userId, session.user.id),
+        ),
+      )
+      .limit(1);
+
+    if (existing.length > 0) {
+      await db
+        .delete(guestbookLikes)
+        .where(
+          and(
+            eq(guestbookLikes.entryId, entryId),
+            eq(guestbookLikes.userId, session.user.id),
+          ),
+        );
+      invalidateTag("guestbook");
+      return { success: true as const, liked: false };
+    } else {
+      await db.insert(guestbookLikes).values({
+        entryId,
+        userId: session.user.id,
+      });
+      invalidateTag("guestbook");
+      return { success: true as const, liked: true };
+    }
+  } catch {
+    return { success: false as const, error: "Failed to toggle like." };
+  }
+}
+
+export async function fetchGuestbookReplies(parentId: number) {
+  return getGuestbookReplies(parentId);
 }

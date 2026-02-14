@@ -9,6 +9,7 @@ import {
   pgEnum,
   json,
   index,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 
 // ─── Enums ───
@@ -185,16 +186,41 @@ export const experiences = pgTable("experiences", {
 
 // ─── Guestbook ───
 
-export const guestbook = pgTable("guestbook", {
-  id: serial("id").primaryKey(),
-  userId: text("user_id").notNull(),
-  authorName: varchar("author_name", { length: 255 }).notNull(),
-  authorEmail: varchar("author_email", { length: 255 }),
-  authorAvatarUrl: text("author_avatar_url"),
-  message: text("message").notNull(),
-  isApproved: boolean("is_approved").default(false),
-  createdAt: timestamp("created_at").defaultNow(),
-});
+export const guestbook = pgTable(
+  "guestbook",
+  {
+    id: serial("id").primaryKey(),
+    parentId: integer("parent_id"),
+    userId: text("user_id").notNull(),
+    authorName: varchar("author_name", { length: 255 }).notNull(),
+    authorEmail: varchar("author_email", { length: 255 }),
+    authorAvatarUrl: text("author_avatar_url"),
+    message: text("message").notNull(),
+    isApproved: boolean("is_approved").default(false),
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => [index("guestbook_parent_id_idx").on(table.parentId)],
+);
+
+// ─── Guestbook Likes ───
+
+export const guestbookLikes = pgTable(
+  "guestbook_likes",
+  {
+    id: serial("id").primaryKey(),
+    entryId: integer("entry_id")
+      .notNull()
+      .references(() => guestbook.id, { onDelete: "cascade" }),
+    userId: text("user_id").notNull(),
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("guestbook_likes_entry_user_idx").on(
+      table.entryId,
+      table.userId,
+    ),
+  ],
+);
 
 // ─── Contact Messages ───
 
@@ -227,6 +253,9 @@ export type NewExperience = typeof experiences.$inferInsert;
 
 export type GuestbookEntry = typeof guestbook.$inferSelect;
 export type NewGuestbookEntry = typeof guestbook.$inferInsert;
+
+export type GuestbookLike = typeof guestbookLikes.$inferSelect;
+export type NewGuestbookLike = typeof guestbookLikes.$inferInsert;
 
 export type ContactMessage = typeof contactMessages.$inferSelect;
 export type NewContactMessage = typeof contactMessages.$inferInsert;
