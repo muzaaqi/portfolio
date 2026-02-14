@@ -71,7 +71,7 @@ export function HeroSection({ profile, socialLinks }: HeroSectionProps) {
   );
 
   const name = profile?.name ?? "Muhammad Zaki As Shidiqi";
-  const title = profile?.title ?? "Frontend Developer";
+  const title = profile?.title ?? "Fullstack Developer";
   const nameParts = name.split(" ");
 
   return (
