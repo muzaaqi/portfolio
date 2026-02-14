@@ -31,50 +31,39 @@ export function HeroSection({ profile, socialLinks }: HeroSectionProps) {
       ).matches;
       if (prefersReducedMotion) return;
 
-      const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
+      const tl = gsap.timeline({
+        defaults: { ease: "power3.out", clearProps: "all" },
+      });
 
-      tl.from(imageRef.current, {
-        scale: 0.8,
-        opacity: 0,
-        duration: 0.8,
-      })
-        .from(
+      tl.fromTo(
+        imageRef.current,
+        { scale: 0.8, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.8 },
+      )
+        .fromTo(
           nameRef.current,
-          {
-            y: 30,
-            opacity: 0,
-            duration: 0.6,
-          },
+          { y: 30, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.6 },
           "-=0.3",
         )
-        .from(
+        .fromTo(
           subtitleRef.current,
-          {
-            y: 20,
-            opacity: 0,
-            duration: 0.5,
-          },
+          { y: 20, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.5 },
           "-=0.2",
         )
-        .from(
+        .fromTo(
           buttonRef.current,
-          {
-            y: 20,
-            opacity: 0,
-            duration: 0.5,
-          },
+          { y: 20, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.5 },
           "-=0.2",
         )
-        .from(
+        .fromTo(
           socialsRef.current?.children
             ? Array.from(socialsRef.current.children)
             : [],
-          {
-            scale: 0,
-            opacity: 0,
-            duration: 0.4,
-            stagger: 0.1,
-          },
+          { scale: 0, opacity: 0 },
+          { scale: 1, opacity: 1, duration: 0.4, stagger: 0.1 },
           "-=0.2",
         );
     },

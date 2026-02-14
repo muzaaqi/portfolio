@@ -54,34 +54,44 @@ export function SkillsSection({ skills }: SkillsSectionProps) {
 
       // Heading animation
       if (headingRef.current) {
-        gsap.from(headingRef.current, {
-          y: 30,
-          opacity: 0,
-          duration: 0.6,
-          scrollTrigger: {
-            trigger: headingRef.current,
-            start: "top 85%",
-            toggleActions: "play none none none",
+        gsap.fromTo(
+          headingRef.current,
+          { y: 30, opacity: 0 },
+          {
+            y: 0,
+            opacity: 1,
+            duration: 0.6,
+            clearProps: "all",
+            scrollTrigger: {
+              trigger: headingRef.current,
+              start: "top 85%",
+              toggleActions: "play none none none",
+            },
           },
-        });
+        );
       }
 
       // Stagger each group
       groupRefs.current.forEach((groupEl) => {
         if (!groupEl) return;
         const badges = groupEl.querySelectorAll("[data-skill-badge]");
-        gsap.from(badges, {
-          scale: 0,
-          opacity: 0,
-          duration: 0.4,
-          stagger: 0.05,
-          ease: "back.out(1.7)",
-          scrollTrigger: {
-            trigger: groupEl,
-            start: "top 85%",
-            toggleActions: "play none none none",
+        gsap.fromTo(
+          badges,
+          { scale: 0, opacity: 0 },
+          {
+            scale: 1,
+            opacity: 1,
+            duration: 0.4,
+            stagger: 0.05,
+            ease: "back.out(1.7)",
+            clearProps: "all",
+            scrollTrigger: {
+              trigger: groupEl,
+              start: "top 85%",
+              toggleActions: "play none none none",
+            },
           },
-        });
+        );
       });
     },
     { scope: sectionRef, dependencies: [skills] },

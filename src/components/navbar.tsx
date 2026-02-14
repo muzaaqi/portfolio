@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import {
   House,
   User,
@@ -9,12 +10,25 @@ import {
   Mail,
   MessageSquare,
   Menu,
+  LayoutDashboard,
 } from "lucide-react";
 import { ThemeSwitch } from "./theme-switch";
 import Logo from "./logo";
 import { useSection } from "@/context/section-context";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { useSession } from "@/lib/auth-client";
+import {
+  Sheet,
+  SheetContent,
+  SheetTitle,
+  SheetDescription,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const items = [
   { id: "home", icon: <House />, label: "Home" },
@@ -29,6 +43,8 @@ const Navbar = () => {
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const { activeSection, scrollTo } = useSection();
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role === "admin";
 
   function handleClick(sectionId: string) {
     scrollTo(sectionId);
@@ -66,7 +82,20 @@ const Navbar = () => {
             );
           })}
         </div>
-        <div className="absolute bottom-0 flex w-full items-center justify-center p-4">
+        <div className="absolute bottom-0 flex w-full flex-col items-center gap-2 p-4">
+          {isAdmin && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link
+                  href="/admin"
+                  className="text-muted-foreground/70 hover:text-foreground transition-colors"
+                >
+                  <LayoutDashboard className="size-5" />
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent side="left">Dashboard</TooltipContent>
+            </Tooltip>
+          )}
           <ThemeSwitch />
         </div>
       </div>
@@ -85,6 +114,10 @@ const Navbar = () => {
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="w-64">
+              <SheetTitle className="sr-only">Navigation</SheetTitle>
+              <SheetDescription className="sr-only">
+                Site navigation menu
+              </SheetDescription>
               <nav className="mt-8 flex flex-col space-y-1">
                 {items.map((item) => (
                   <button
@@ -100,6 +133,16 @@ const Navbar = () => {
                     {item.label}
                   </button>
                 ))}
+                {isAdmin && (
+                  <Link
+                    href="/admin"
+                    onClick={() => setSheetOpen(false)}
+                    className="text-muted-foreground hover:bg-accent/50 flex items-center gap-3 rounded-md px-4 py-3 text-left transition-colors"
+                  >
+                    <LayoutDashboard />
+                    Dashboard
+                  </Link>
+                )}
               </nav>
             </SheetContent>
           </Sheet>
