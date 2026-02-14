@@ -245,18 +245,10 @@ export async function deleteExperience(id: number) {
 
 // ─── Guestbook (moderation) ───
 
-export async function approveGuestbookEntry(id: number) {
-  await requireAdmin();
-  await db
-    .update(guestbook)
-    .set({ isApproved: true })
-    .where(eq(guestbook.id, id));
-  invalidateTag("guestbook");
-  return { success: true };
-}
-
 export async function deleteGuestbookEntry(id: number) {
   await requireAdmin();
+  // Delete child replies first, then the entry itself
+  await db.delete(guestbook).where(eq(guestbook.parentId, id));
   await db.delete(guestbook).where(eq(guestbook.id, id));
   invalidateTag("guestbook");
   return { success: true };
