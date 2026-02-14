@@ -75,9 +75,9 @@
   --radius: 0rem;
   --background: oklch(0.9735 0.0261 90.0953);
   --foreground: oklch(0.2972 0 0);
-  --card: oklch(0.9440 0.0278 88.7522);
+  --card: oklch(0.944 0.0278 88.7522);
   --card-foreground: oklch(0.2972 0 0);
-  --popover: oklch(0.9440 0.0278 88.7522);
+  --popover: oklch(0.944 0.0278 88.7522);
   --popover-foreground: oklch(0.2972 0 0);
   --primary: oklch(0.3508 0.0186 98.7387);
   --primary-foreground: oklch(0.9735 0.0261 90.0953);
@@ -88,21 +88,21 @@
   --accent: oklch(0.8802 0.0324 89.1514);
   --accent-foreground: oklch(0.3508 0.0186 98.7387);
   --destructive: oklch(0.4791 0.1427 28.8516);
-  --border: oklch(0.8680 0.0325 89.1535);
-  --input: oklch(0.8680 0.0325 89.1535);
+  --border: oklch(0.868 0.0325 89.1535);
+  --input: oklch(0.868 0.0325 89.1535);
   --ring: oklch(0.3508 0.0186 98.7387);
   --chart-1: oklch(0.3508 0.0186 98.7387);
   --chart-2: oklch(0.5625 0.0232 91.7097);
   --chart-3: oklch(0.4791 0.1427 28.8516);
   --chart-4: oklch(0.4655 0.0205 99.9449);
   --chart-5: oklch(0.7021 0.0334 93.0432);
-  --sidebar: oklch(0.9440 0.0278 88.7522);
+  --sidebar: oklch(0.944 0.0278 88.7522);
   --sidebar-foreground: oklch(0.2972 0 0);
   --sidebar-primary: oklch(0.3508 0.0186 98.7387);
   --sidebar-primary-foreground: oklch(0.9735 0.0261 90.0953);
   --sidebar-accent: oklch(0.9048 0.0227 87.1561);
   --sidebar-accent-foreground: oklch(0.3508 0.0186 98.7387);
-  --sidebar-border: oklch(0.8680 0.0325 89.1535);
+  --sidebar-border: oklch(0.868 0.0325 89.1535);
   --sidebar-ring: oklch(0.3508 0.0186 98.7387);
   --destructive-foreground: oklch(0.9735 0.0261 90.0953);
   --font-sans: "Inter", sans-serif;
@@ -118,11 +118,16 @@
   --spacing: 0.25rem;
   --shadow-2xs: 3px 3px 0px 0px hsl(0 0% 0% / 0.05);
   --shadow-xs: 3px 3px 0px 0px hsl(0 0% 0% / 0.05);
-  --shadow-sm: 3px 3px 0px 0px hsl(0 0% 0% / 0.10), 3px 1px 2px -1px hsl(0 0% 0% / 0.10);
-  --shadow: 3px 3px 0px 0px hsl(0 0% 0% / 0.10), 3px 1px 2px -1px hsl(0 0% 0% / 0.10);
-  --shadow-md: 3px 3px 0px 0px hsl(0 0% 0% / 0.10), 3px 2px 4px -1px hsl(0 0% 0% / 0.10);
-  --shadow-lg: 3px 3px 0px 0px hsl(0 0% 0% / 0.10), 3px 4px 6px -1px hsl(0 0% 0% / 0.10);
-  --shadow-xl: 3px 3px 0px 0px hsl(0 0% 0% / 0.10), 3px 8px 10px -1px hsl(0 0% 0% / 0.10);
+  --shadow-sm:
+    3px 3px 0px 0px hsl(0 0% 0% / 0.1), 3px 1px 2px -1px hsl(0 0% 0% / 0.1);
+  --shadow:
+    3px 3px 0px 0px hsl(0 0% 0% / 0.1), 3px 1px 2px -1px hsl(0 0% 0% / 0.1);
+  --shadow-md:
+    3px 3px 0px 0px hsl(0 0% 0% / 0.1), 3px 2px 4px -1px hsl(0 0% 0% / 0.1);
+  --shadow-lg:
+    3px 3px 0px 0px hsl(0 0% 0% / 0.1), 3px 4px 6px -1px hsl(0 0% 0% / 0.1);
+  --shadow-xl:
+    3px 3px 0px 0px hsl(0 0% 0% / 0.1), 3px 8px 10px -1px hsl(0 0% 0% / 0.1);
   --shadow-2xl: 3px 3px 0px 0px hsl(0 0% 0% / 0.25);
   --tracking-normal: -0.03em;
 }
@@ -172,14 +177,19 @@
   --shadow-offset-y: 4px;
   --letter-spacing: -0.03em;
   --spacing: 0.25rem;
-  --shadow-2xs: 4px 4px 0px 0px hsl(0 0% 0% / 0.20);
-  --shadow-xs: 4px 4px 0px 0px hsl(0 0% 0% / 0.20);
-  --shadow-sm: 4px 4px 0px 0px hsl(0 0% 0% / 0.40), 4px 1px 2px -1px hsl(0 0% 0% / 0.40);
-  --shadow: 4px 4px 0px 0px hsl(0 0% 0% / 0.40), 4px 1px 2px -1px hsl(0 0% 0% / 0.40);
-  --shadow-md: 4px 4px 0px 0px hsl(0 0% 0% / 0.40), 4px 2px 4px -1px hsl(0 0% 0% / 0.40);
-  --shadow-lg: 4px 4px 0px 0px hsl(0 0% 0% / 0.40), 4px 4px 6px -1px hsl(0 0% 0% / 0.40);
-  --shadow-xl: 4px 4px 0px 0px hsl(0 0% 0% / 0.40), 4px 8px 10px -1px hsl(0 0% 0% / 0.40);
-  --shadow-2xl: 4px 4px 0px 0px hsl(0 0% 0% / 1.00);
+  --shadow-2xs: 4px 4px 0px 0px hsl(0 0% 0% / 0.2);
+  --shadow-xs: 4px 4px 0px 0px hsl(0 0% 0% / 0.2);
+  --shadow-sm:
+    4px 4px 0px 0px hsl(0 0% 0% / 0.4), 4px 1px 2px -1px hsl(0 0% 0% / 0.4);
+  --shadow:
+    4px 4px 0px 0px hsl(0 0% 0% / 0.4), 4px 1px 2px -1px hsl(0 0% 0% / 0.4);
+  --shadow-md:
+    4px 4px 0px 0px hsl(0 0% 0% / 0.4), 4px 2px 4px -1px hsl(0 0% 0% / 0.4);
+  --shadow-lg:
+    4px 4px 0px 0px hsl(0 0% 0% / 0.4), 4px 4px 6px -1px hsl(0 0% 0% / 0.4);
+  --shadow-xl:
+    4px 4px 0px 0px hsl(0 0% 0% / 0.4), 4px 8px 10px -1px hsl(0 0% 0% / 0.4);
+  --shadow-2xl: 4px 4px 0px 0px hsl(0 0% 0% / 1);
 }
 
 @layer base {
@@ -190,4 +200,27 @@
     @apply bg-background text-foreground;
     letter-spacing: var(--tracking-normal);
   }
+}
+
+/* Loading bar animation */
+@keyframes loading-bar {
+  0% {
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+  50% {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+  50.01% {
+    transform-origin: right;
+  }
+  100% {
+    transform: scaleX(0);
+    transform-origin: right;
+  }
+}
+
+@utility animate-loading-bar {
+  animation: loading-bar 1.5s ease-in-out infinite;
 }
