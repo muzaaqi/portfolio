@@ -107,10 +107,10 @@ export function HeroSection({ profile, socialLinks }: HeroSectionProps) {
           <div ref={buttonRef}>
             {profile?.resumeUrl ? (
               <Button asChild>
-                <a href={profile.resumeUrl} download>
+                <Link href={profile.resumeUrl} download>
                   <Download className="mr-2 size-4" />
                   Download CV
-                </a>
+                </Link>
               </Button>
             ) : (
               <Button>
