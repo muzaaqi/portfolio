@@ -51,12 +51,7 @@ import {
   UserCog,
 } from "lucide-react";
 import { toast } from "sonner";
-import {
-  updateUserRole,
-  banUser,
-  unbanUser,
-  deleteUser,
-} from "../actions";
+import { updateUserRole, banUser, unbanUser, deleteUser } from "../actions";
 import type { User } from "@/db/schema";
 import { useRouter } from "next/navigation";
 
@@ -86,7 +81,7 @@ export function UsersClient({ users }: UsersClientProps) {
   function getRoleBadge(u: User) {
     if (u.role === "admin") {
       return (
-        <Badge className="bg-purple-500/10 text-purple-500 hover:bg-purple-500/20 border-0">
+        <Badge className="border-0 bg-purple-500/10 text-purple-500 hover:bg-purple-500/20">
           <ShieldCheck className="mr-1 size-3" />
           Admin
         </Badge>
@@ -110,7 +105,7 @@ export function UsersClient({ users }: UsersClientProps) {
     return (
       <Badge
         variant="outline"
-        className="border-green-500/30 text-green-600 text-xs"
+        className="border-green-500/30 text-xs text-green-600"
       >
         Active
       </Badge>
@@ -176,7 +171,7 @@ export function UsersClient({ users }: UsersClientProps) {
 
       {/* Search */}
       <div className="relative mb-4 max-w-sm">
-        <Search className="text-muted-foreground absolute left-3 top-1/2 size-4 -translate-y-1/2" />
+        <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
         <Input
           placeholder="Search by name or email..."
           value={search}
@@ -269,7 +264,11 @@ export function UsersClient({ users }: UsersClientProps) {
                   {/* Delete */}
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button variant="ghost" size="icon-sm" title="Delete user">
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        title="Delete user"
+                      >
                         <Trash2 className="size-4" />
                       </Button>
                     </AlertDialogTrigger>
@@ -278,7 +277,8 @@ export function UsersClient({ users }: UsersClientProps) {
                         <AlertDialogTitle>Delete user?</AlertDialogTitle>
                         <AlertDialogDescription>
                           This will permanently delete &quot;{u.name}&quot; and
-                          all their sessions and accounts. This cannot be undone.
+                          all their sessions and accounts. This cannot be
+                          undone.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
