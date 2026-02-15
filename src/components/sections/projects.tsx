@@ -60,13 +60,14 @@ export function ProjectsSection({ projects }: ProjectsSectionProps) {
 
 function ProjectCard({ project }: { project: Project }) {
   return (
-    <Card className="group border-border flex h-full flex-col overflow-hidden transition-shadow hover:shadow-lg pt-0">
+    <Card className="group border-border flex h-full flex-col overflow-hidden pt-0 transition-shadow hover:shadow-lg">
       {project.imageUrl && (
         <div className="relative aspect-video overflow-hidden">
           <Image
             src={project.imageUrl}
             alt={project.title}
             fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             className="object-cover transition-transform duration-300"
           />
         </div>

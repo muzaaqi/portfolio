@@ -54,34 +54,38 @@ const Navbar = () => {
   return (
     <>
       {/* Desktop: Fixed right sidebar */}
-      <div className="fixed right-0 z-50 hidden h-svh w-15 flex-col items-center justify-center p-4 md:flex">
+      <header className="fixed right-0 z-50 hidden h-svh w-15 flex-col items-center justify-center p-4 md:flex">
         <div className="absolute top-0 flex w-full items-center justify-center p-4">
           <Logo />
         </div>
 
-        <div className="flex flex-col">
-          {items.map((item, i) => {
-            let hoverClass = "scale-100";
+        <nav aria-label="Main navigation">
+          <div className="flex flex-col">
+            {items.map((item, i) => {
+              let hoverClass = "scale-100";
 
-            if (hoverIndex === i) {
-              hoverClass = "scale-125 -translate-x-1/4";
-            } else if (hoverIndex === i - 1 || hoverIndex === i + 1) {
-              hoverClass = "scale-115 -translate-x-1/8";
-            }
+              if (hoverIndex === i) {
+                hoverClass = "scale-125 -translate-x-1/4";
+              } else if (hoverIndex === i - 1 || hoverIndex === i + 1) {
+                hoverClass = "scale-115 -translate-x-1/8";
+              }
 
-            return (
-              <button
-                key={item.id}
-                onClick={() => handleClick(item.id)}
-                onMouseEnter={() => setHoverIndex(i)}
-                onMouseLeave={() => setHoverIndex(null)}
-                className={`hover:text-foreground cursor-pointer p-3 transition-all duration-300 ${hoverClass} ${activeSection === item.id ? "text-foreground scale-125" : "text-muted-foreground/70"} `}
-              >
-                {item.icon}
-              </button>
-            );
-          })}
-        </div>
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => handleClick(item.id)}
+                  onMouseEnter={() => setHoverIndex(i)}
+                  onMouseLeave={() => setHoverIndex(null)}
+                  aria-label={item.label}
+                  aria-current={activeSection === item.id ? "true" : undefined}
+                  className={`hover:text-foreground cursor-pointer p-3 transition-all duration-300 ${hoverClass} ${activeSection === item.id ? "text-foreground scale-125" : "text-muted-foreground/70"} `}
+                >
+                  {item.icon}
+                </button>
+              );
+            })}
+          </div>
+        </nav>
         <div className="absolute bottom-0 flex w-full flex-col items-center gap-2 p-4">
           {isAdmin && (
             <Tooltip>
@@ -98,7 +102,7 @@ const Navbar = () => {
           )}
           <ThemeSwitch />
         </div>
-      </div>
+      </header>
 
       {/* Mobile: Top bar + Sheet */}
       <div className="bg-background/80 fixed top-0 right-0 left-0 z-50 flex items-center justify-between border-b p-3 backdrop-blur-sm md:hidden">

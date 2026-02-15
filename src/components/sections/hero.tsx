@@ -66,7 +66,9 @@ export function HeroSection({ profile, socialLinks }: HeroSectionProps) {
   const title = profile?.title ?? "Fullstack Developer";
   const tagline = profile?.heroTagline || "PORTFOLIO";
   const descriptor = profile?.heroDescriptor || "CREATIVE DEVELOPER";
-  const shortBio = profile?.shortBio || "Crafting digital experiences with code and creativity.";
+  const shortBio =
+    profile?.shortBio ||
+    "Crafting digital experiences with code and creativity.";
 
   // Split text for scattered placement
   const {
@@ -95,6 +97,7 @@ export function HeroSection({ profile, socialLinks }: HeroSectionProps) {
             href={link.url}
             target="_blank"
             rel="noopener noreferrer"
+            aria-label={link.platform}
             className="hero-bottom text-muted-foreground hover:text-foreground transition-colors duration-200"
           >
             <SocialIcon platform={link.platform} />
@@ -106,6 +109,7 @@ export function HeroSection({ profile, socialLinks }: HeroSectionProps) {
             href={link.href}
             target="_blank"
             rel="noopener noreferrer"
+            aria-label={link.label}
             className="hero-bottom text-muted-foreground hover:text-foreground transition-colors duration-200"
           >
             {link.icon}
@@ -176,23 +180,26 @@ export function HeroSection({ profile, socialLinks }: HeroSectionProps) {
 
       {/* ── Top-left: first part of name ── */}
       <div className="hero-text absolute top-[4%] left-[3%] z-5 hidden max-w-[45vw] md:block">
-        <h1 className="font-display text-foreground text-[clamp(3rem,8vw,7.5rem)] leading-[0.85] uppercase">
+        <span
+          aria-hidden="true"
+          className="font-display text-foreground block text-[clamp(3rem,8vw,7.5rem)] leading-[0.85] uppercase"
+        >
           {nameFirstHalf.map((w, i) => (
             <span key={i} className="block">
               {w}
             </span>
           ))}
-        </h1>
+        </span>
       </div>
 
       {/* ── Top-right: title words stacked ── */}
       <div className="hero-text absolute top-[4%] right-[3%] z-5 hidden max-w-[35vw] text-right md:block">
         <span className="font-display text-foreground text-[clamp(2rem,5vw,4.5rem)] leading-[0.85] uppercase">
-        {titleWords.map((w, i) => (
-              <span key={i} className="block">
-                {w}
-              </span>
-            ))}
+          {titleWords.map((w, i) => (
+            <span key={i} className="block">
+              {w}
+            </span>
+          ))}
         </span>
       </div>
 
@@ -226,10 +233,10 @@ export function HeroSection({ profile, socialLinks }: HeroSectionProps) {
         <div className="hero-text absolute right-[3%] bottom-[6%] z-15 hidden max-w-[35vw] text-right md:block">
           <span className="font-display text-foreground text-[clamp(2rem,5vw,4.5rem)] leading-[0.85] uppercase">
             {descriptorLines.map((line, i) => (
-            <span key={i} className="block">
-              {line}
-            </span>
-          ))}
+              <span key={i} className="block">
+                {line}
+              </span>
+            ))}
           </span>
         </div>
       )}
@@ -272,18 +279,22 @@ function SocialIcon({ platform }: { platform: string }) {
 const defaultSocialLinks = [
   {
     href: "https://github.com/muzaaqi",
+    label: "GitHub",
     icon: <Github />,
   },
   {
     href: "https://instagram.com/muzaaqi_",
+    label: "Instagram",
     icon: <Instagram />,
   },
   {
     href: "https://linkedin.com/in/muzaaqi",
+    label: "LinkedIn",
     icon: <Linkedin />,
   },
   {
     href: "https://youtube.com/@muzaaqi_",
+    label: "YouTube",
     icon: <Youtube />,
   },
 ];
