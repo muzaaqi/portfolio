@@ -30,6 +30,8 @@ export function ProfileForm({ profile }: ProfileFormProps) {
       email: profile?.email ?? "",
       location: profile?.location ?? "",
       availableForHire: profile?.availableForHire ?? false,
+      heroTagline: profile?.heroTagline ?? "",
+      heroDescriptor: profile?.heroDescriptor ?? "",
     }),
     [profile],
   );
@@ -126,6 +128,43 @@ export function ProfileForm({ profile }: ProfileFormProps) {
                   }
                   rows={2}
                 />
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="heroTagline">Hero Tagline</Label>
+                  <Input
+                    id="heroTagline"
+                    value={formData.heroTagline}
+                    onChange={(e) =>
+                      setFormData((d) => ({
+                        ...d,
+                        heroTagline: e.target.value,
+                      }))
+                    }
+                    placeholder="e.g. PORTFOLIO"
+                  />
+                  <p className="text-muted-foreground text-xs">
+                    Large background text center-left on hero
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="heroDescriptor">Hero Descriptor</Label>
+                  <Input
+                    id="heroDescriptor"
+                    value={formData.heroDescriptor}
+                    onChange={(e) =>
+                      setFormData((d) => ({
+                        ...d,
+                        heroDescriptor: e.target.value,
+                      }))
+                    }
+                    placeholder="e.g. CREATIVE DEVELOPER"
+                  />
+                  <p className="text-muted-foreground text-xs">
+                    Descriptor text bottom-left on hero
+                  </p>
+                </div>
               </div>
 
               <div className="space-y-2">

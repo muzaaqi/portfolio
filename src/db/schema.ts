@@ -104,6 +104,8 @@ export const profile = pgTable("profile", {
   email: varchar("email", { length: 255 }),
   location: varchar("location", { length: 255 }),
   availableForHire: boolean("available_for_hire").default(false),
+  heroTagline: text("hero_tagline"),
+  heroDescriptor: text("hero_descriptor"),
   updatedAt: timestamp("updated_at")
     .defaultNow()
     .$onUpdate(() => new Date()),

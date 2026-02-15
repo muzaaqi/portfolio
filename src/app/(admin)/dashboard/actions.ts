@@ -42,6 +42,8 @@ export async function updateProfile(data: {
   email?: string;
   location?: string;
   availableForHire?: boolean;
+  heroTagline?: string;
+  heroDescriptor?: string;
 }) {
   await requireAdmin();
 
