@@ -29,7 +29,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Plus, Trash2, Pencil } from "lucide-react";
+import { Plus, Trash2, Pencil, Github, Instagram, Linkedin, Youtube, Twitter, Globe, Facebook, Twitch, type LucideIcon } from "lucide-react";
 import { toast } from "sonner";
 import {
   createSocialLink,
@@ -38,6 +38,31 @@ import {
 } from "../actions";
 import type { SocialLink } from "@/db/schema";
 import { useRouter } from "next/navigation";
+
+const lucideIconMap: Record<string, LucideIcon> = {
+  github: Github,
+  instagram: Instagram,
+  linkedin: Linkedin,
+  youtube: Youtube,
+  twitter: Twitter,
+  globe: Globe,
+  facebook: Facebook,
+  twitch: Twitch,
+};
+
+function LucideIconPreview({ name }: { name: string | null }) {
+  if (!name) return <span className="text-muted-foreground">—</span>;
+  const IconComp = lucideIconMap[name.toLowerCase()];
+  if (IconComp) {
+    return (
+      <div className="flex items-center gap-2">
+        <IconComp className="size-4" />
+        <span className="text-muted-foreground text-xs">{name}</span>
+      </div>
+    );
+  }
+  return <span className="text-muted-foreground text-sm">{name}</span>;
+}
 
 interface SocialsClientProps {
   socials: SocialLink[];
@@ -91,7 +116,9 @@ export function SocialsClient({ socials }: SocialsClientProps) {
                   {link.url}
                 </a>
               </TableCell>
-              <TableCell>{link.icon ?? "—"}</TableCell>
+              <TableCell>
+                <LucideIconPreview name={link.icon} />
+              </TableCell>
               <TableCell>
                 <div className="flex gap-1">
                   <Button
