@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
+import { Reorder, useDragControls } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,30 +30,30 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Plus, Trash2, Pencil, Github, Instagram, Linkedin, Youtube, Twitter, Globe, Facebook, Twitch, type LucideIcon } from "lucide-react";
+import { Plus, Trash2, Pencil, GripVertical, type LucideIcon } from "lucide-react";
+import { icons as allLucideIcons } from "lucide-react";
 import { toast } from "sonner";
 import {
   createSocialLink,
   updateSocialLink,
   deleteSocialLink,
+  reorderItems,
 } from "../actions";
+import { LucideIconPicker } from "@/components/admin/lucide-icon-picker";
 import type { SocialLink } from "@/db/schema";
 import { useRouter } from "next/navigation";
 
-const lucideIconMap: Record<string, LucideIcon> = {
-  github: Github,
-  instagram: Instagram,
-  linkedin: Linkedin,
-  youtube: Youtube,
-  twitter: Twitter,
-  globe: Globe,
-  facebook: Facebook,
-  twitch: Twitch,
-};
+// Convert kebab-case slug to PascalCase for lookup
+function toPascal(slug: string) {
+  return slug
+    .split("-")
+    .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+    .join("");
+}
 
 function LucideIconPreview({ name }: { name: string | null }) {
   if (!name) return <span className="text-muted-foreground">—</span>;
-  const IconComp = lucideIconMap[name.toLowerCase()];
+  const IconComp = allLucideIcons[toPascal(name) as keyof typeof allLucideIcons] as LucideIcon | undefined;
   if (IconComp) {
     return (
       <div className="flex items-center gap-2">
@@ -68,9 +69,12 @@ interface SocialsClientProps {
   socials: SocialLink[];
 }
 
-export function SocialsClient({ socials }: SocialsClientProps) {
+export function SocialsClient({ socials: initialSocials }: SocialsClientProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<SocialLink | null>(null);
+  const [socials, setSocials] = useState(
+    [...initialSocials].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)),
+  );
   const router = useRouter();
 
   function handleEdit(link: SocialLink) {
@@ -82,6 +86,19 @@ export function SocialsClient({ socials }: SocialsClientProps) {
     setEditing(null);
     setDialogOpen(true);
   }
+
+  const handleReorder = useCallback(async (newItems: SocialLink[]) => {
+    setSocials(newItems);
+    const updates = newItems.map((item, index) => ({
+      id: item.id,
+      sortOrder: index,
+    }));
+    try {
+      await reorderItems("socialLinks", updates);
+    } catch {
+      toast.error("Failed to save order.");
+    }
+  }, []);
 
   return (
     <div>
@@ -96,80 +113,42 @@ export function SocialsClient({ socials }: SocialsClientProps) {
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead className="w-10" />
             <TableHead>Platform</TableHead>
             <TableHead>URL</TableHead>
             <TableHead>Icon</TableHead>
             <TableHead className="w-24">Actions</TableHead>
           </TableRow>
         </TableHeader>
-        <TableBody>
+        <Reorder.Group
+          as="tbody"
+          axis="y"
+          values={socials}
+          onReorder={handleReorder}
+        >
           {socials.map((link) => (
-            <TableRow key={link.id}>
-              <TableCell className="font-medium">{link.platform}</TableCell>
-              <TableCell className="max-w-xs truncate">
-                <a
-                  href={link.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary underline"
-                >
-                  {link.url}
-                </a>
-              </TableCell>
-              <TableCell>
-                <LucideIconPreview name={link.icon} />
-              </TableCell>
-              <TableCell>
-                <div className="flex gap-1">
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    onClick={() => handleEdit(link)}
-                  >
-                    <Pencil className="size-4" />
-                  </Button>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="ghost" size="icon-sm">
-                        <Trash2 className="size-4" />
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Delete link?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Remove {link.platform} link permanently.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={async () => {
-                            await deleteSocialLink(link.id);
-                            toast.success("Deleted.");
-                            router.refresh();
-                          }}
-                        >
-                          Delete
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </div>
-              </TableCell>
-            </TableRow>
+            <SocialRow
+              key={link.id}
+              link={link}
+              onEdit={() => handleEdit(link)}
+              onDelete={async () => {
+                await deleteSocialLink(link.id);
+                toast.success("Deleted.");
+                router.refresh();
+              }}
+            />
           ))}
           {socials.length === 0 && (
             <TableRow>
               <TableCell
-                colSpan={4}
+                colSpan={5}
                 className="text-muted-foreground text-center"
               >
                 No social links yet.
               </TableCell>
             </TableRow>
           )}
-        </TableBody>
+        </Reorder.Group>
       </Table>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -192,6 +171,77 @@ export function SocialsClient({ socials }: SocialsClientProps) {
   );
 }
 
+function SocialRow({
+  link,
+  onEdit,
+  onDelete,
+}: {
+  link: SocialLink;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  const controls = useDragControls();
+
+  return (
+    <Reorder.Item
+      as="tr"
+      value={link}
+      dragListener={false}
+      dragControls={controls}
+      className="border-border/50 border-b"
+    >
+      <TableCell className="w-10">
+        <button
+          className="cursor-grab touch-none active:cursor-grabbing"
+          onPointerDown={(e) => controls.start(e)}
+        >
+          <GripVertical className="text-muted-foreground size-4" />
+        </button>
+      </TableCell>
+      <TableCell className="font-medium">{link.platform}</TableCell>
+      <TableCell className="max-w-xs truncate">
+        <a
+          href={link.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-primary underline"
+        >
+          {link.url}
+        </a>
+      </TableCell>
+      <TableCell>
+        <LucideIconPreview name={link.icon} />
+      </TableCell>
+      <TableCell>
+        <div className="flex gap-1">
+          <Button variant="ghost" size="icon-sm" onClick={onEdit}>
+            <Pencil className="size-4" />
+          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="ghost" size="icon-sm">
+                <Trash2 className="size-4" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete link?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Remove {link.platform} link permanently.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={onDelete}>Delete</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+      </TableCell>
+    </Reorder.Item>
+  );
+}
+
 function SocialForm({
   link,
   onSuccess,
@@ -204,7 +254,6 @@ function SocialForm({
     platform: link?.platform ?? "",
     url: link?.url ?? "",
     icon: link?.icon ?? "",
-    sortOrder: link?.sortOrder ?? 0,
   });
 
   async function handleSubmit(e: React.FormEvent) {
@@ -212,16 +261,10 @@ function SocialForm({
     setIsPending(true);
     try {
       if (link) {
-        await updateSocialLink(link.id, {
-          ...form,
-          sortOrder: Number(form.sortOrder),
-        });
+        await updateSocialLink(link.id, form);
         toast.success("Updated!");
       } else {
-        await createSocialLink({
-          ...form,
-          sortOrder: Number(form.sortOrder),
-        });
+        await createSocialLink(form);
         toast.success("Created!");
       }
       onSuccess();
@@ -252,25 +295,12 @@ function SocialForm({
           required
         />
       </div>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-2">
-          <Label>Icon (lucide name)</Label>
-          <Input
-            value={form.icon}
-            onChange={(e) => setForm((f) => ({ ...f, icon: e.target.value }))}
-            placeholder="github"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label>Sort Order</Label>
-          <Input
-            type="number"
-            value={form.sortOrder}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, sortOrder: Number(e.target.value) }))
-            }
-          />
-        </div>
+      <div className="space-y-2">
+        <Label>Icon</Label>
+        <LucideIconPicker
+          value={form.icon}
+          onChange={(slug) => setForm((f) => ({ ...f, icon: slug }))}
+        />
       </div>
       <Button type="submit" disabled={isPending} className="w-full">
         {isPending ? "Saving..." : link ? "Update" : "Create"}

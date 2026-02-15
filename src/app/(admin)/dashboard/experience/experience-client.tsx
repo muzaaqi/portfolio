@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
+import { Reorder, useDragControls } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -37,13 +38,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Badge } from "@/components/ui/badge";
-import { Plus, Trash2, Pencil } from "lucide-react";
+import { Plus, Trash2, Pencil, GripVertical } from "lucide-react";
 import { toast } from "sonner";
 import {
   createExperience,
   updateExperience,
   deleteExperience,
+  reorderItems,
 } from "../actions";
 import type { Experience } from "@/db/schema";
 import { useRouter } from "next/navigation";
@@ -53,9 +54,12 @@ interface ExperienceClientProps {
   experiences: Experience[];
 }
 
-export function ExperienceClient({ experiences }: ExperienceClientProps) {
+export function ExperienceClient({ experiences: initialExperiences }: ExperienceClientProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Experience | null>(null);
+  const [experiences, setExperiences] = useState(
+    [...initialExperiences].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)),
+  );
   const router = useRouter();
 
   const work = experiences.filter((e) => e.type === "work");
@@ -71,88 +75,67 @@ export function ExperienceClient({ experiences }: ExperienceClientProps) {
     setDialogOpen(true);
   }
 
-  function renderTable(items: Experience[]) {
+  const handleReorder = useCallback(
+    async (type: string, newItems: Experience[]) => {
+      setExperiences((prev) => {
+        const others = prev.filter((e) => e.type !== type);
+        return [...others, ...newItems];
+      });
+
+      const updates = newItems.map((item, index) => ({
+        id: item.id,
+        sortOrder: index,
+      }));
+      try {
+        await reorderItems("experiences", updates);
+      } catch {
+        toast.error("Failed to save order.");
+      }
+    },
+    [],
+  );
+
+  function renderTable(items: Experience[], type: string) {
     return (
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead className="w-10" />
             <TableHead>Role</TableHead>
             <TableHead>Company</TableHead>
             <TableHead>Period</TableHead>
             <TableHead className="w-24">Actions</TableHead>
           </TableRow>
         </TableHeader>
-        <TableBody>
+        <Reorder.Group
+          as="tbody"
+          axis="y"
+          values={items}
+          onReorder={(newItems) => handleReorder(type, newItems)}
+        >
           {items.map((exp) => (
-            <TableRow key={exp.id}>
-              <TableCell className="font-medium">{exp.role}</TableCell>
-              <TableCell>{exp.company}</TableCell>
-              <TableCell className="text-sm">
-                {exp.startDate
-                  ? new Date(exp.startDate).toLocaleDateString("en-US", {
-                      month: "short",
-                      year: "numeric",
-                    })
-                  : ""}{" "}
-                —{" "}
-                {exp.endDate
-                  ? new Date(exp.endDate).toLocaleDateString("en-US", {
-                      month: "short",
-                      year: "numeric",
-                    })
-                  : "Present"}
-              </TableCell>
-              <TableCell>
-                <div className="flex gap-1">
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    onClick={() => handleEdit(exp)}
-                  >
-                    <Pencil className="size-4" />
-                  </Button>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="ghost" size="icon-sm">
-                        <Trash2 className="size-4" />
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Delete entry?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          This action cannot be undone.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={async () => {
-                            await deleteExperience(exp.id);
-                            toast.success("Deleted.");
-                            router.refresh();
-                          }}
-                        >
-                          Delete
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </div>
-              </TableCell>
-            </TableRow>
+            <ExperienceRow
+              key={exp.id}
+              exp={exp}
+              onEdit={() => handleEdit(exp)}
+              onDelete={async () => {
+                await deleteExperience(exp.id);
+                toast.success("Deleted.");
+                router.refresh();
+              }}
+            />
           ))}
           {items.length === 0 && (
             <TableRow>
               <TableCell
-                colSpan={4}
+                colSpan={5}
                 className="text-muted-foreground text-center"
               >
                 No entries yet.
               </TableCell>
             </TableRow>
           )}
-        </TableBody>
+        </Reorder.Group>
       </Table>
     );
   }
@@ -174,8 +157,8 @@ export function ExperienceClient({ experiences }: ExperienceClientProps) {
             Education ({education.length})
           </TabsTrigger>
         </TabsList>
-        <TabsContent value="work">{renderTable(work)}</TabsContent>
-        <TabsContent value="education">{renderTable(education)}</TabsContent>
+        <TabsContent value="work">{renderTable(work, "work")}</TabsContent>
+        <TabsContent value="education">{renderTable(education, "education")}</TabsContent>
       </Tabs>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -195,6 +178,80 @@ export function ExperienceClient({ experiences }: ExperienceClientProps) {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+function ExperienceRow({
+  exp,
+  onEdit,
+  onDelete,
+}: {
+  exp: Experience;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  const controls = useDragControls();
+
+  return (
+    <Reorder.Item
+      as="tr"
+      value={exp}
+      dragListener={false}
+      dragControls={controls}
+      className="border-border/50 border-b"
+    >
+      <TableCell className="w-10">
+        <button
+          className="cursor-grab touch-none active:cursor-grabbing"
+          onPointerDown={(e) => controls.start(e)}
+        >
+          <GripVertical className="text-muted-foreground size-4" />
+        </button>
+      </TableCell>
+      <TableCell className="font-medium">{exp.role}</TableCell>
+      <TableCell>{exp.company}</TableCell>
+      <TableCell className="text-sm">
+        {exp.startDate
+          ? new Date(exp.startDate).toLocaleDateString("en-US", {
+              month: "short",
+              year: "numeric",
+            })
+          : ""}{" "}
+        —{" "}
+        {exp.endDate
+          ? new Date(exp.endDate).toLocaleDateString("en-US", {
+              month: "short",
+              year: "numeric",
+            })
+          : "Present"}
+      </TableCell>
+      <TableCell>
+        <div className="flex gap-1">
+          <Button variant="ghost" size="icon-sm" onClick={onEdit}>
+            <Pencil className="size-4" />
+          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="ghost" size="icon-sm">
+                <Trash2 className="size-4" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete entry?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={onDelete}>Delete</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+      </TableCell>
+    </Reorder.Item>
   );
 }
 
@@ -219,7 +276,6 @@ function ExperienceForm({
       : "",
     description: experience?.description ?? "",
     isCurrent: experience?.isCurrent ?? false,
-    sortOrder: experience?.sortOrder ?? 0,
   });
 
   async function handleSubmit(e: React.FormEvent) {
@@ -235,7 +291,6 @@ function ExperienceForm({
         startDate: new Date(form.startDate),
         endDate: form.endDate ? new Date(form.endDate) : undefined,
         isCurrent: form.isCurrent,
-        sortOrder: Number(form.sortOrder),
       };
       if (experience) {
         await updateExperience(experience.id, data);
@@ -330,17 +385,6 @@ function ExperienceForm({
             setForm((f) => ({ ...f, description: e.target.value }))
           }
           rows={4}
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label>Sort Order</Label>
-        <Input
-          type="number"
-          value={form.sortOrder}
-          onChange={(e) =>
-            setForm((f) => ({ ...f, sortOrder: Number(e.target.value) }))
-          }
         />
       </div>
 

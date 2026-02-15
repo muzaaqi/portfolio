@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
+import { Reorder, useDragControls } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -18,7 +19,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   Table,
@@ -46,9 +46,9 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
-import { MoreHorizontal, Plus } from "lucide-react";
+import { MoreHorizontal, Plus, GripVertical } from "lucide-react";
 import { toast } from "sonner";
-import { createProject, updateProject, deleteProject } from "../actions";
+import { createProject, updateProject, deleteProject, reorderItems } from "../actions";
 import { ImageUpload } from "@/components/admin/image-upload";
 import type { Project } from "@/db/schema";
 import { useRouter } from "next/navigation";
@@ -57,9 +57,12 @@ interface ProjectsClientProps {
   projects: Project[];
 }
 
-export function ProjectsClient({ projects }: ProjectsClientProps) {
+export function ProjectsClient({ projects: initialProjects }: ProjectsClientProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [projects, setProjects] = useState(
+    [...initialProjects].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)),
+  );
   const router = useRouter();
 
   function handleEdit(project: Project) {
@@ -71,6 +74,19 @@ export function ProjectsClient({ projects }: ProjectsClientProps) {
     setEditingProject(null);
     setDialogOpen(true);
   }
+
+  const handleReorder = useCallback(async (newItems: Project[]) => {
+    setProjects(newItems);
+    const updates = newItems.map((item, index) => ({
+      id: item.id,
+      sortOrder: index,
+    }));
+    try {
+      await reorderItems("projects", updates);
+    } catch {
+      toast.error("Failed to save order.");
+    }
+  }, []);
 
   return (
     <div>
@@ -85,6 +101,7 @@ export function ProjectsClient({ projects }: ProjectsClientProps) {
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead className="w-10" />
             <TableHead>Title</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Featured</TableHead>
@@ -92,83 +109,35 @@ export function ProjectsClient({ projects }: ProjectsClientProps) {
             <TableHead className="w-12" />
           </TableRow>
         </TableHeader>
-        <TableBody>
+        <Reorder.Group
+          as="tbody"
+          axis="y"
+          values={projects}
+          onReorder={handleReorder}
+        >
           {projects.map((project) => (
-            <TableRow key={project.id}>
-              <TableCell className="font-medium">{project.title}</TableCell>
-              <TableCell>
-                <Badge
-                  variant={
-                    project.status === "completed" ? "default" : "secondary"
-                  }
-                >
-                  {project.status}
-                </Badge>
-              </TableCell>
-              <TableCell>{project.isFeatured ? "Yes" : "No"}</TableCell>
-              <TableCell>
-                <div className="flex flex-wrap gap-1">
-                  {(project.tags ?? []).slice(0, 3).map((tag) => (
-                    <Badge key={tag} variant="outline" className="text-xs">
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
-              </TableCell>
-              <TableCell>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon-sm">
-                      <MoreHorizontal className="size-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => handleEdit(project)}>
-                      Edit
-                    </DropdownMenuItem>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                          Delete
-                        </DropdownMenuItem>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Delete project?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            This action cannot be undone.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={async () => {
-                              await deleteProject(project.id);
-                              toast.success("Project deleted.");
-                              router.refresh();
-                            }}
-                          >
-                            Delete
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </TableCell>
-            </TableRow>
+            <ProjectRow
+              key={project.id}
+              project={project}
+              onEdit={() => handleEdit(project)}
+              onDelete={async () => {
+                await deleteProject(project.id);
+                toast.success("Project deleted.");
+                router.refresh();
+              }}
+            />
           ))}
           {projects.length === 0 && (
             <TableRow>
               <TableCell
-                colSpan={5}
+                colSpan={6}
                 className="text-muted-foreground text-center"
               >
                 No projects yet.
               </TableCell>
             </TableRow>
           )}
-        </TableBody>
+        </Reorder.Group>
       </Table>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -191,6 +160,88 @@ export function ProjectsClient({ projects }: ProjectsClientProps) {
   );
 }
 
+function ProjectRow({
+  project,
+  onEdit,
+  onDelete,
+}: {
+  project: Project;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  const controls = useDragControls();
+
+  return (
+    <Reorder.Item
+      as="tr"
+      value={project}
+      dragListener={false}
+      dragControls={controls}
+      className="border-border/50 border-b"
+    >
+      <TableCell className="w-10">
+        <button
+          className="cursor-grab touch-none active:cursor-grabbing"
+          onPointerDown={(e) => controls.start(e)}
+        >
+          <GripVertical className="text-muted-foreground size-4" />
+        </button>
+      </TableCell>
+      <TableCell className="font-medium">{project.title}</TableCell>
+      <TableCell>
+        <Badge
+          variant={project.status === "completed" ? "default" : "secondary"}
+        >
+          {project.status}
+        </Badge>
+      </TableCell>
+      <TableCell>{project.isFeatured ? "Yes" : "No"}</TableCell>
+      <TableCell>
+        <div className="flex flex-wrap gap-1">
+          {(project.tags ?? []).slice(0, 3).map((tag) => (
+            <Badge key={tag} variant="outline" className="text-xs">
+              {tag}
+            </Badge>
+          ))}
+        </div>
+      </TableCell>
+      <TableCell>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon-sm">
+              <MoreHorizontal className="size-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={onEdit}>Edit</DropdownMenuItem>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                  Delete
+                </DropdownMenuItem>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete project?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={onDelete}>
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </TableCell>
+    </Reorder.Item>
+  );
+}
+
 function ProjectForm({
   project,
   onSuccess,
@@ -210,7 +261,6 @@ function ProjectForm({
     tags: (project?.tags ?? []).join(", "),
     isFeatured: project?.isFeatured ?? false,
     status: project?.status ?? "completed",
-    sortOrder: project?.sortOrder ?? 0,
   });
 
   async function handleSubmit(e: React.FormEvent) {
@@ -223,7 +273,6 @@ function ProjectForm({
         .split(",")
         .map((t) => t.trim())
         .filter(Boolean),
-      sortOrder: Number(form.sortOrder),
       status: form.status as "completed" | "in_progress" | "archived",
     };
 
@@ -335,7 +384,7 @@ function ProjectForm({
         />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label>Status</Label>
           <Select
@@ -356,16 +405,6 @@ function ProjectForm({
               <SelectItem value="archived">Archived</SelectItem>
             </SelectContent>
           </Select>
-        </div>
-        <div className="space-y-2">
-          <Label>Sort Order</Label>
-          <Input
-            type="number"
-            value={form.sortOrder}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, sortOrder: Number(e.target.value) }))
-            }
-          />
         </div>
         <div className="flex items-center gap-3 pt-6">
           <Switch
