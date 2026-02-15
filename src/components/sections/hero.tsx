@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useCallback } from "react";
+import { useRef, useCallback, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Github, Instagram, Linkedin, Youtube, Briefcase } from "lucide-react";
@@ -19,11 +19,6 @@ interface HeroSectionProps {
 
 export function HeroSection({ profile, socialLinks }: HeroSectionProps) {
   const containerRef = useRef<HTMLElement>(null);
-  const imageRef = useRef<HTMLDivElement>(null);
-  const nameRef = useRef<HTMLDivElement>(null);
-  const subtitleRef = useRef<HTMLHeadingElement>(null);
-  const socialsRef = useRef<HTMLDivElement>(null);
-  const ctaRef = useRef<HTMLDivElement>(null);
   const lenisRef = useRef<InstanceType<typeof import("lenis").default> | null>(
     null,
   );
@@ -43,123 +38,249 @@ export function HeroSection({ profile, socialLinks }: HeroSectionProps) {
       ).matches;
       if (prefersReducedMotion) return;
 
-      const tl = gsap.timeline({
-        defaults: { ease: "power3.out", clearProps: "all" },
-      });
+      const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
 
       tl.fromTo(
-        imageRef.current,
-        { scale: 0.8, opacity: 0 },
-        { scale: 1, opacity: 1, duration: 0.8 },
+        ".hero-text",
+        { y: 80, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.9, stagger: 0.08 },
       )
         .fromTo(
-          nameRef.current,
-          { y: 40, opacity: 0 },
-          { y: 0, opacity: 1, duration: 0.7 },
+          ".hero-image",
+          { scale: 0.85, opacity: 0 },
+          { scale: 1, opacity: 1, duration: 1 },
+          "-=0.6",
+        )
+        .fromTo(
+          ".hero-bottom",
+          { y: 20, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.5, stagger: 0.06 },
           "-=0.3",
-        )
-        .fromTo(
-          subtitleRef.current,
-          { y: 20, opacity: 0 },
-          { y: 0, opacity: 1, duration: 0.5 },
-          "-=0.2",
-        )
-        .fromTo(
-          socialsRef.current?.children
-            ? Array.from(socialsRef.current.children)
-            : [],
-          { scale: 0, opacity: 0 },
-          { scale: 1, opacity: 1, duration: 0.4, stagger: 0.1 },
-          "-=0.2",
-        )
-        .fromTo(
-          ctaRef.current,
-          { y: 20, opacity: 0 },
-          { y: 0, opacity: 1, duration: 0.5 },
-          "-=0.1",
         );
     },
     { scope: containerRef },
   );
 
+  // ── Customizable content (DB → fallback) ──
   const name = profile?.name ?? "Muhammad Zaki As Shidiqi";
   const title = profile?.title ?? "Fullstack Developer";
+  const tagline = profile?.heroTagline || "PORTFOLIO";
+  const descriptor = profile?.heroDescriptor || "CREATIVE DEVELOPER";
+
+  // Split text for scattered placement
+  const {
+    nameFirstHalf,
+    nameSecondHalf,
+    titleWords,
+    taglineLines,
+    descriptorLines,
+  } = useMemo(() => {
+    const nw = name.split(" ");
+    const mid = Math.ceil(nw.length / 2);
+    return {
+      nameFirstHalf: nw.slice(0, mid),
+      nameSecondHalf: nw.slice(mid),
+      titleWords: title.split(" "),
+      taglineLines: tagline.split(/\s+/),
+      descriptorLines: descriptor.split(/\s+/),
+    };
+  }, [name, title, tagline, descriptor]);
+
+  const socialLinkItems =
+    socialLinks.length > 0
+      ? socialLinks.map((link) => (
+          <Link
+            key={link.id}
+            href={link.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hero-bottom text-muted-foreground hover:text-foreground transition-colors duration-200"
+          >
+            <SocialIcon platform={link.platform} />
+          </Link>
+        ))
+      : defaultSocialLinks.map((link) => (
+          <Link
+            key={link.href}
+            href={link.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hero-bottom text-muted-foreground hover:text-foreground transition-colors duration-200"
+          >
+            {link.icon}
+          </Link>
+        ));
+
+  // Horizontal row for mobile
+  const socialLinksIcon = (
+    <div className="flex items-center gap-5">{socialLinkItems}</div>
+  );
+
+  const hireMeBtn = profile?.availableForHire && (
+    <Button
+      size="lg"
+      className="hero-bottom group gap-2 rounded-full px-8"
+      onClick={scrollToContact}
+    >
+      <Briefcase className="size-4 transition-transform group-hover:scale-110" />
+      Hire Me
+    </Button>
+  );
 
   return (
     <section
       ref={containerRef}
       id="home"
       data-section="home"
-      className="container flex min-h-svh w-full flex-col items-center justify-center px-4 py-20"
+      className="relative h-svh w-full overflow-hidden"
     >
-      {/* Profile image */}
-      <div ref={imageRef} className="relative mb-8">
-        <div className="bg-primary/20 absolute inset-0 scale-110 rounded-full blur-2xl" />
-        <Image
-          src={profile?.profileImageUrl ?? "/profile.webp"}
-          alt="profile-picture"
-          width={160}
-          height={160}
-          priority
-          className="relative z-10 rounded-full border-2 border-white/10 object-cover"
-        />
+      {/* ════════════════════════════════════════════
+          MOBILE LAYOUT  (<md) — stacked vertical
+         ════════════════════════════════════════════ */}
+      <div className="flex h-full flex-col justify-between px-5 py-8 md:hidden">
+        {/* Name + title */}
+        <div className="hero-text space-y-1">
+          <h1 className="font-display text-foreground text-[clamp(2.8rem,13vw,5rem)] leading-[0.85] uppercase">
+            {nameFirstHalf.map((w, i) => (
+              <span key={i} className="block">
+                {w}
+              </span>
+            ))}
+          </h1>
+          <span className="font-display text-foreground/60 block text-[clamp(1.2rem,5vw,2rem)] leading-[0.9] uppercase">
+            {titleWords.join(" ")}
+          </span>
+        </div>
+
+        {/* Tagline + image row */}
+        <div className="hero-text relative -my-2 flex items-center gap-3">
+          <span className="font-display text-foreground shrink-0 text-[clamp(2.5rem,12vw,4.5rem)] leading-[0.8] uppercase">
+            {taglineLines.map((line, i) => (
+              <span key={i} className="block">
+                {line}
+              </span>
+            ))}
+          </span>
+          <div className="hero-image relative h-[38vh] flex-1">
+            <Image
+              src={profile?.profileImageUrl ?? "/profile.webp"}
+              alt={name}
+              fill
+              priority
+              className="object-contain object-bottom drop-shadow-2xl"
+            />
+          </div>
+        </div>
+
+        {/* Descriptor + name second half */}
+        <div className="hero-text flex items-end justify-between gap-4">
+          <span className="font-display text-foreground text-[clamp(1.4rem,6vw,2.5rem)] leading-[0.85] uppercase">
+            {descriptorLines.map((line, i) => (
+              <span key={i} className="block">
+                {line}
+              </span>
+            ))}
+          </span>
+          {nameSecondHalf.length > 0 && (
+            <span className="font-display text-foreground text-right text-[clamp(1.4rem,6vw,2.5rem)] leading-[0.85] uppercase">
+              {nameSecondHalf.map((w, i) => (
+                <span key={i} className="block">
+                  {w}
+                </span>
+              ))}
+            </span>
+          )}
+        </div>
+
+        {/* Social links + CTA */}
+        <div className="flex flex-col items-center gap-3 pt-2">
+          {socialLinksIcon}
+          {hireMeBtn}
+        </div>
       </div>
 
-      {/* Name — bold centered typography */}
-      <div ref={nameRef} className="mb-4 text-center">
-        <h1 className="text-6xl leading-tight font-black tracking-tight md:text-8xl lg:text-9xl">
-          {name}
+      {/* ════════════════════════════════════════════
+          DESKTOP LAYOUT  (md+) — scattered absolute
+         ════════════════════════════════════════════ */}
+
+      {/* ── Top-left: first part of name ── */}
+      <div className="hero-text absolute top-[4%] left-[3%] z-5 hidden max-w-[45vw] md:block">
+        <h1 className="font-display text-foreground text-[clamp(3rem,8vw,7.5rem)] leading-[0.85] uppercase">
+          {nameFirstHalf.map((w, i) => (
+            <span key={i} className="block">
+              {w}
+            </span>
+          ))}
         </h1>
       </div>
 
-      {/* Title */}
-      <h2
-        ref={subtitleRef}
-        className="text-muted-foreground mb-10 text-center font-mono text-lg tracking-widest uppercase md:text-xl"
-      >
-        {title}
-      </h2>
+      {/* ── Top-right: title words stacked ── */}
+      <div className="hero-text absolute top-[4%] right-[3%] z-5 hidden max-w-[35vw] text-right md:block">
+        <span className="font-display text-foreground text-[clamp(2rem,5vw,4.5rem)] leading-[0.85] uppercase">
+          {titleWords.map((w, i) => (
+            <span key={i} className="block">
+              {w}
+            </span>
+          ))}
+        </span>
+      </div>
 
-      {/* Social links */}
-      <div ref={socialsRef} className="flex gap-6">
-        {socialLinks.length > 0
-          ? socialLinks.map((link) => (
-              <Link
-                key={link.id}
-                href={link.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-muted-foreground hover:text-foreground transition-colors duration-200"
-              >
-                <SocialIcon platform={link.platform} />
-              </Link>
-            ))
-          : defaultSocialLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-muted-foreground hover:text-foreground transition-colors duration-200"
-              >
-                {link.icon}
-              </Link>
+      {/* ── Center: tagline (customizable) — largest text, BEHIND image ── */}
+      <div className="hero-text absolute top-[45%] z-0 hidden w-full justify-center md:block">
+        <span className="font-display text-foreground text-center text-[clamp(4rem,13vw,12rem)] leading-[0.78] uppercase">
+          {taglineLines.map((line, i) => (
+            <span key={i} className="block">
+              {line}
+            </span>
+          ))}
+        </span>
+      </div>
+
+      {/* ── Bottom-left: descriptor (customizable) ── */}
+      <div className="hero-text absolute bottom-[6%] left-[3%] z-15 hidden max-w-[35vw] md:block">
+        <span className="font-display text-foreground text-[clamp(1.8rem,4vw,3.5rem)] leading-[0.85] uppercase">
+          {descriptorLines.map((line, i) => (
+            <span key={i} className="block">
+              {line}
+            </span>
+          ))}
+        </span>
+      </div>
+
+      {/* ── Bottom-right: second part of name ── */}
+      {nameSecondHalf.length > 0 && (
+        <div className="hero-text absolute right-[3%] bottom-[6%] z-15 hidden max-w-[35vw] text-right md:block">
+          <span className="font-display text-foreground text-[clamp(2rem,5vw,4.5rem)] leading-[0.85] uppercase">
+            {nameSecondHalf.map((w, i) => (
+              <span key={i} className="block">
+                {w}
+              </span>
             ))}
+          </span>
+        </div>
+      )}
+
+      {/* ── Profile image — anchored to bottom center ── */}
+      <div className="hero-image pointer-events-none absolute bottom-0 z-10 hidden w-full justify-center md:flex">
+        <Image
+          src={profile?.profileImageUrl ?? "/profile.webp"}
+          alt={name}
+          width={600}
+          height={800}
+          priority
+          className="h-[75vh] w-auto object-contain object-bottom lg:h-[82vh]"
+        />
+        <div className="from-background/80 absolute inset-0 bottom-0 -z-1 bg-linear-to-t to-transparent" />
       </div>
 
-      {/* Hire Me CTA */}
-      <div ref={ctaRef} className="mt-10">
-        {profile?.availableForHire && (
-          <Button
-            size="lg"
-            className="group gap-2 rounded-full px-8"
-            onClick={scrollToContact}
-          >
-            <Briefcase className="size-4 transition-transform group-hover:scale-110" />
-            Hire Me
-          </Button>
-        )}
+      {/* ── Hire Me CTA + Social links — bottom center ── */}
+      <div className="absolute bottom-[5%] z-20 hidden justify-center flex-col items-center gap-3 md:flex w-full">
+        {hireMeBtn && <div className="animate-bounce">{hireMeBtn}</div>}
+        {socialLinksIcon}
       </div>
+
+      {/* ── Vignette overlay ── */}
+      <div className="from-background pointer-events-none absolute inset-x-0 bottom-0 z-15 hidden h-1/4 bg-linear-to-t to-transparent md:block" />
     </section>
   );
 }
