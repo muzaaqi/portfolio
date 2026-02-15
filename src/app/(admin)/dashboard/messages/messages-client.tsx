@@ -43,13 +43,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import {
-  Eye,
-  Trash2,
-  MoreHorizontal,
-  Search,
-  ArrowUpDown,
-} from "lucide-react";
+import { Eye, Trash2, MoreHorizontal, Search, ArrowUpDown } from "lucide-react";
 import { toast } from "sonner";
 import { markMessageAsRead, deleteContactMessage } from "../actions";
 import type { ContactMessage } from "@/db/schema";
@@ -66,7 +60,9 @@ export function MessagesClient({ messages }: MessagesClientProps) {
   // Search & filter state
   const [search, setSearch] = useState("");
   const [readFilter, setReadFilter] = useState("all");
-  const [sortField, setSortField] = useState<"name" | "email" | "createdAt" | null>(null);
+  const [sortField, setSortField] = useState<
+    "name" | "email" | "createdAt" | null
+  >(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
 
   const displayMessages = useMemo(() => {
@@ -92,7 +88,9 @@ export function MessagesClient({ messages }: MessagesClientProps) {
         if (sortField === "name") cmp = a.name.localeCompare(b.name);
         else if (sortField === "email") cmp = a.email.localeCompare(b.email);
         else if (sortField === "createdAt")
-          cmp = new Date(a.createdAt ?? 0).getTime() - new Date(b.createdAt ?? 0).getTime();
+          cmp =
+            new Date(a.createdAt ?? 0).getTime() -
+            new Date(b.createdAt ?? 0).getTime();
         return sortDir === "desc" ? -cmp : cmp;
       });
     }

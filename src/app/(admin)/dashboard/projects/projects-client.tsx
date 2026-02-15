@@ -90,10 +90,16 @@ export function ProjectsClient({
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [featuredFilter, setFeaturedFilter] = useState("all");
-  const [sortField, setSortField] = useState<"title" | "status" | "createdAt" | null>(null);
+  const [sortField, setSortField] = useState<
+    "title" | "status" | "createdAt" | null
+  >(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
 
-  const hasFilters = search !== "" || statusFilter !== "all" || featuredFilter !== "all" || sortField !== null;
+  const hasFilters =
+    search !== "" ||
+    statusFilter !== "all" ||
+    featuredFilter !== "all" ||
+    sortField !== null;
 
   const displayProjects = useMemo(() => {
     let list = [...projects];
@@ -121,8 +127,12 @@ export function ProjectsClient({
       list.sort((a, b) => {
         let cmp = 0;
         if (sortField === "title") cmp = a.title.localeCompare(b.title);
-        else if (sortField === "status") cmp = (a.status ?? "").localeCompare(b.status ?? "");
-        else if (sortField === "createdAt") cmp = new Date(a.createdAt ?? 0).getTime() - new Date(b.createdAt ?? 0).getTime();
+        else if (sortField === "status")
+          cmp = (a.status ?? "").localeCompare(b.status ?? "");
+        else if (sortField === "createdAt")
+          cmp =
+            new Date(a.createdAt ?? 0).getTime() -
+            new Date(b.createdAt ?? 0).getTime();
         return sortDir === "desc" ? -cmp : cmp;
       });
     }
@@ -133,7 +143,10 @@ export function ProjectsClient({
   function toggleSort(field: "title" | "status" | "createdAt") {
     if (sortField === field) {
       if (sortDir === "asc") setSortDir("desc");
-      else { setSortField(null); setSortDir("asc"); }
+      else {
+        setSortField(null);
+        setSortDir("asc");
+      }
     } else {
       setSortField(field);
       setSortDir("asc");

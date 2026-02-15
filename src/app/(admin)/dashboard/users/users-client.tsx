@@ -272,8 +272,8 @@ export function UsersClient({ users }: UsersClientProps) {
                         <AlertDialogHeader>
                           <AlertDialogTitle>Delete user?</AlertDialogTitle>
                           <AlertDialogDescription>
-                            This will permanently delete &quot;{u.name}&quot; and
-                            all their sessions and accounts. This cannot be
+                            This will permanently delete &quot;{u.name}&quot;
+                            and all their sessions and accounts. This cannot be
                             undone.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
