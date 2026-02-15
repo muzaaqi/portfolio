@@ -22,6 +22,13 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -50,6 +57,7 @@ import {
   UserIcon,
   Ban,
   CircleCheck,
+  MoreHorizontal,
 } from "lucide-react";
 import { toast } from "sonner";
 import { updateUserRole, banUser, unbanUser, deleteUser } from "../actions";
@@ -168,7 +176,7 @@ export function UsersClient({ users }: UsersClientProps) {
             <TableHead>Role</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Joined</TableHead>
-            <TableHead className="w-32">Actions</TableHead>
+            <TableHead className="w-12" />
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -226,60 +234,62 @@ export function UsersClient({ users }: UsersClientProps) {
                 {new Date(u.createdAt).toLocaleDateString()}
               </TableCell>
               <TableCell>
-                <div className="flex gap-1">
-                  {/* Ban / Unban */}
-                  {u.banned ? (
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      title="Unban user"
-                      onClick={() => handleUnban(u)}
-                    >
-                      <Shield className="size-4 text-green-600" />
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon-sm">
+                      <MoreHorizontal className="size-4" />
                     </Button>
-                  ) : (
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      title="Ban user"
-                      onClick={() => {
-                        setBanTarget(u);
-                        setBanDialogOpen(true);
-                      }}
-                    >
-                      <ShieldOff className="size-4 text-orange-500" />
-                    </Button>
-                  )}
-
-                  {/* Delete */}
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        title="Delete user"
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {u.banned ? (
+                      <DropdownMenuItem onClick={() => handleUnban(u)}>
+                        <Shield className="mr-2 size-4 text-green-600" />
+                        Unban
+                      </DropdownMenuItem>
+                    ) : (
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setBanTarget(u);
+                          setBanDialogOpen(true);
+                        }}
                       >
-                        <Trash2 className="size-4" />
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Delete user?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          This will permanently delete &quot;{u.name}&quot; and
-                          all their sessions and accounts. This cannot be
-                          undone.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => handleDelete(u)}>
+                        <ShieldOff className="mr-2 size-4 text-orange-500" />
+                        Ban
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuSeparator />
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <DropdownMenuItem
+                          onSelect={(e) => e.preventDefault()}
+                          className="text-destructive focus:text-destructive"
+                        >
+                          <Trash2 className="mr-2 size-4" />
                           Delete
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </div>
+                        </DropdownMenuItem>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete user?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This will permanently delete &quot;{u.name}&quot; and
+                            all their sessions and accounts. This cannot be
+                            undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => handleDelete(u)}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </TableCell>
             </TableRow>
           ))}

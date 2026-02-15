@@ -21,6 +21,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -36,6 +43,7 @@ import {
   Trash2,
   Pencil,
   GripVertical,
+  MoreHorizontal,
   type LucideIcon,
 } from "lucide-react";
 import { icons as allLucideIcons } from "lucide-react";
@@ -59,19 +67,12 @@ function toPascal(slug: string) {
 }
 
 function LucideIconPreview({ name }: { name: string | null }) {
-  if (!name) return <span className="text-muted-foreground">—</span>;
+  if (!name) return null;
   const IconComp = allLucideIcons[
     toPascal(name) as keyof typeof allLucideIcons
   ] as LucideIcon | undefined;
-  if (IconComp) {
-    return (
-      <div className="flex items-center gap-2">
-        <IconComp className="size-4" />
-        <span className="text-muted-foreground text-xs">{name}</span>
-      </div>
-    );
-  }
-  return <span className="text-muted-foreground text-sm">{name}</span>;
+  if (IconComp) return <IconComp className="text-muted-foreground size-4" />;
+  return null;
 }
 
 interface SocialsClientProps {
@@ -125,8 +126,7 @@ export function SocialsClient({ socials: initialSocials }: SocialsClientProps) {
             <TableHead className="w-10" />
             <TableHead>Platform</TableHead>
             <TableHead>URL</TableHead>
-            <TableHead>Icon</TableHead>
-            <TableHead className="w-24">Actions</TableHead>
+            <TableHead className="w-12" />
           </TableRow>
         </TableHeader>
         <Reorder.Group
@@ -150,7 +150,7 @@ export function SocialsClient({ socials: initialSocials }: SocialsClientProps) {
           {socials.length === 0 && (
             <TableRow>
               <TableCell
-                colSpan={5}
+                colSpan={4}
                 className="text-muted-foreground text-center"
               >
                 No social links yet.
@@ -207,7 +207,12 @@ function SocialRow({
           <GripVertical className="text-muted-foreground size-4" />
         </button>
       </TableCell>
-      <TableCell className="font-medium">{link.platform}</TableCell>
+      <TableCell>
+        <div className="flex items-center gap-2">
+          <LucideIconPreview name={link.icon} />
+          <span className="font-medium">{link.platform}</span>
+        </div>
+      </TableCell>
       <TableCell className="max-w-xs truncate">
         <a
           href={link.url}
@@ -219,33 +224,48 @@ function SocialRow({
         </a>
       </TableCell>
       <TableCell>
-        <LucideIconPreview name={link.icon} />
-      </TableCell>
-      <TableCell>
-        <div className="flex gap-1">
-          <Button variant="ghost" size="icon-sm" onClick={onEdit}>
-            <Pencil className="size-4" />
-          </Button>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="ghost" size="icon-sm">
-                <Trash2 className="size-4" />
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Delete link?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Remove {link.platform} link permanently.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={onDelete}>Delete</AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon-sm">
+              <MoreHorizontal className="size-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={onEdit}>
+              <Pencil className="mr-2 size-4" />
+              Edit
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <DropdownMenuItem
+                  onSelect={(e) => e.preventDefault()}
+                  className="text-destructive focus:text-destructive"
+                >
+                  <Trash2 className="mr-2 size-4" />
+                  Delete
+                </DropdownMenuItem>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete link?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Remove {link.platform} link permanently.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={onDelete}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </TableCell>
     </Reorder.Item>
   );

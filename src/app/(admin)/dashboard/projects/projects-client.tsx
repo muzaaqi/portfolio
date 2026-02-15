@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { Reorder, useDragControls } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,6 +33,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -47,7 +48,17 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
-import { MoreHorizontal, Plus, GripVertical } from "lucide-react";
+import {
+  MoreHorizontal,
+  Plus,
+  GripVertical,
+  Pencil,
+  Trash2,
+  Search,
+  Eye,
+  EyeOff,
+  ArrowUpDown,
+} from "lucide-react";
 import { toast } from "sonner";
 import {
   createProject,
@@ -74,6 +85,60 @@ export function ProjectsClient({
     ),
   );
   const router = useRouter();
+
+  // Search & filter state
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [featuredFilter, setFeaturedFilter] = useState("all");
+  const [sortField, setSortField] = useState<"title" | "status" | "createdAt" | null>(null);
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+
+  const hasFilters = search !== "" || statusFilter !== "all" || featuredFilter !== "all" || sortField !== null;
+
+  const displayProjects = useMemo(() => {
+    let list = [...projects];
+
+    if (search) {
+      const q = search.toLowerCase();
+      list = list.filter(
+        (p) =>
+          p.title.toLowerCase().includes(q) ||
+          (p.tags ?? []).some((t) => t.toLowerCase().includes(q)),
+      );
+    }
+
+    if (statusFilter !== "all") {
+      list = list.filter((p) => p.status === statusFilter);
+    }
+
+    if (featuredFilter === "featured") {
+      list = list.filter((p) => p.isFeatured);
+    } else if (featuredFilter === "not-featured") {
+      list = list.filter((p) => !p.isFeatured);
+    }
+
+    if (sortField) {
+      list.sort((a, b) => {
+        let cmp = 0;
+        if (sortField === "title") cmp = a.title.localeCompare(b.title);
+        else if (sortField === "status") cmp = (a.status ?? "").localeCompare(b.status ?? "");
+        else if (sortField === "createdAt") cmp = new Date(a.createdAt ?? 0).getTime() - new Date(b.createdAt ?? 0).getTime();
+        return sortDir === "desc" ? -cmp : cmp;
+      });
+    }
+
+    return list;
+  }, [projects, search, statusFilter, featuredFilter, sortField, sortDir]);
+
+  function toggleSort(field: "title" | "status" | "createdAt") {
+    if (sortField === field) {
+      if (sortDir === "asc") setSortDir("desc");
+      else { setSortField(null); setSortDir("asc"); }
+    } else {
+      setSortField(field);
+      setSortDir("asc");
+    }
+  }
 
   function handleEdit(project: Project) {
     setEditingProject(project);
@@ -108,46 +173,123 @@ export function ProjectsClient({
         </Button>
       </div>
 
+      {/* Search & Filters */}
+      <div className="mb-4 flex flex-wrap items-center gap-3">
+        <div className="relative max-w-sm flex-1">
+          <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+          <Input
+            placeholder="Search title or tags..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-40">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="completed">Completed</SelectItem>
+            <SelectItem value="in_progress">In Progress</SelectItem>
+            <SelectItem value="archived">Archived</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={featuredFilter} onValueChange={setFeaturedFilter}>
+          <SelectTrigger className="w-40">
+            <SelectValue placeholder="Featured" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Visibility</SelectItem>
+            <SelectItem value="featured">Featured</SelectItem>
+            <SelectItem value="not-featured">Not Featured</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-10" />
-            <TableHead>Title</TableHead>
-            <TableHead>Status</TableHead>
+            {!hasFilters && <TableHead className="w-10" />}
+            <TableHead>
+              <button
+                className="flex items-center gap-1"
+                onClick={() => toggleSort("title")}
+              >
+                Title
+                <ArrowUpDown className="text-muted-foreground size-3" />
+              </button>
+            </TableHead>
+            <TableHead>
+              <button
+                className="flex items-center gap-1"
+                onClick={() => toggleSort("status")}
+              >
+                Status
+                <ArrowUpDown className="text-muted-foreground size-3" />
+              </button>
+            </TableHead>
             <TableHead>Featured</TableHead>
             <TableHead>Tags</TableHead>
             <TableHead className="w-12" />
           </TableRow>
         </TableHeader>
-        <Reorder.Group
-          as="tbody"
-          axis="y"
-          values={projects}
-          onReorder={handleReorder}
-        >
-          {projects.map((project) => (
-            <ProjectRow
-              key={project.id}
-              project={project}
-              onEdit={() => handleEdit(project)}
-              onDelete={async () => {
-                await deleteProject(project.id);
-                toast.success("Project deleted.");
-                router.refresh();
-              }}
-            />
-          ))}
-          {projects.length === 0 && (
-            <TableRow>
-              <TableCell
-                colSpan={6}
-                className="text-muted-foreground text-center"
-              >
-                No projects yet.
-              </TableCell>
-            </TableRow>
-          )}
-        </Reorder.Group>
+        {hasFilters ? (
+          <TableBody>
+            {displayProjects.map((project) => (
+              <ProjectRowStatic
+                key={project.id}
+                project={project}
+                onEdit={() => handleEdit(project)}
+                onDelete={async () => {
+                  await deleteProject(project.id);
+                  toast.success("Project deleted.");
+                  router.refresh();
+                }}
+              />
+            ))}
+            {displayProjects.length === 0 && (
+              <TableRow>
+                <TableCell
+                  colSpan={5}
+                  className="text-muted-foreground text-center"
+                >
+                  No matching projects.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        ) : (
+          <Reorder.Group
+            as="tbody"
+            axis="y"
+            values={projects}
+            onReorder={handleReorder}
+          >
+            {projects.map((project) => (
+              <ProjectRow
+                key={project.id}
+                project={project}
+                onEdit={() => handleEdit(project)}
+                onDelete={async () => {
+                  await deleteProject(project.id);
+                  toast.success("Project deleted.");
+                  router.refresh();
+                }}
+              />
+            ))}
+            {projects.length === 0 && (
+              <TableRow>
+                <TableCell
+                  colSpan={6}
+                  className="text-muted-foreground text-center"
+                >
+                  No projects yet.
+                </TableCell>
+              </TableRow>
+            )}
+          </Reorder.Group>
+        )}
       </Table>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -170,6 +312,61 @@ export function ProjectsClient({
   );
 }
 
+/* Shared actions dropdown */
+function ProjectActions({
+  onEdit,
+  onDelete,
+}: {
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon-sm">
+          <MoreHorizontal className="size-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={onEdit}>
+          <Pencil className="mr-2 size-4" />
+          Edit
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <DropdownMenuItem
+              onSelect={(e) => e.preventDefault()}
+              className="text-destructive focus:text-destructive"
+            >
+              <Trash2 className="mr-2 size-4" />
+              Delete
+            </DropdownMenuItem>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete project?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={onDelete}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+/* Draggable row (no filters active) */
 function ProjectRow({
   project,
   onEdit,
@@ -205,7 +402,13 @@ function ProjectRow({
           {project.status}
         </Badge>
       </TableCell>
-      <TableCell>{project.isFeatured ? "Yes" : "No"}</TableCell>
+      <TableCell>
+        {project.isFeatured ? (
+          <Eye className="text-primary size-4" />
+        ) : (
+          <EyeOff className="text-muted-foreground size-4" />
+        )}
+      </TableCell>
       <TableCell>
         <div className="flex flex-wrap gap-1">
           {(project.tags ?? []).slice(0, 3).map((tag) => (
@@ -216,39 +419,52 @@ function ProjectRow({
         </div>
       </TableCell>
       <TableCell>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon-sm">
-              <MoreHorizontal className="size-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={onEdit}>Edit</DropdownMenuItem>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                  Delete
-                </DropdownMenuItem>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Delete project?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This action cannot be undone.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={onDelete}>
-                    Delete
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <ProjectActions onEdit={onEdit} onDelete={onDelete} />
       </TableCell>
     </Reorder.Item>
+  );
+}
+
+/* Static row (filters active — no DnD) */
+function ProjectRowStatic({
+  project,
+  onEdit,
+  onDelete,
+}: {
+  project: Project;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  return (
+    <TableRow>
+      <TableCell className="font-medium">{project.title}</TableCell>
+      <TableCell>
+        <Badge
+          variant={project.status === "completed" ? "default" : "secondary"}
+        >
+          {project.status}
+        </Badge>
+      </TableCell>
+      <TableCell>
+        {project.isFeatured ? (
+          <Eye className="text-primary size-4" />
+        ) : (
+          <EyeOff className="text-muted-foreground size-4" />
+        )}
+      </TableCell>
+      <TableCell>
+        <div className="flex flex-wrap gap-1">
+          {(project.tags ?? []).slice(0, 3).map((tag) => (
+            <Badge key={tag} variant="outline" className="text-xs">
+              {tag}
+            </Badge>
+          ))}
+        </div>
+      </TableCell>
+      <TableCell>
+        <ProjectActions onEdit={onEdit} onDelete={onDelete} />
+      </TableCell>
+    </TableRow>
   );
 }
 

@@ -20,9 +20,15 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Trash2, Search } from "lucide-react";
+import { Trash2, Search, MoreHorizontal } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { deleteGuestbookEntry } from "../actions";
@@ -113,35 +119,49 @@ export function GuestbookClient({ entries }: GuestbookClientProps) {
                   : "—"}
               </TableCell>
               <TableCell>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon-sm">
-                      <Trash2 className="size-4" />
+                      <MoreHorizontal className="size-4" />
                     </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Delete entry?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        {entry.parentId
-                          ? "This will delete this reply."
-                          : "This will delete this comment and all its replies."}
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={async () => {
-                          await deleteGuestbookEntry(entry.id);
-                          toast.success("Deleted.");
-                          router.refresh();
-                        }}
-                      >
-                        Delete
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <DropdownMenuItem
+                          onSelect={(e) => e.preventDefault()}
+                          className="text-destructive focus:text-destructive"
+                        >
+                          <Trash2 className="mr-2 size-4" />
+                          Delete
+                        </DropdownMenuItem>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete entry?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            {entry.parentId
+                              ? "This will delete this reply."
+                              : "This will delete this comment and all its replies."}
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            onClick={async () => {
+                              await deleteGuestbookEntry(entry.id);
+                              toast.success("Deleted.");
+                              router.refresh();
+                            }}
+                          >
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </TableCell>
             </TableRow>
           ))}
