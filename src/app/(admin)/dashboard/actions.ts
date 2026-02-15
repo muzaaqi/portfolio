@@ -274,6 +274,40 @@ export async function deleteContactMessage(id: number) {
   return { success: true };
 }
 
+// ─── Bulk Reorder ───
+
+const reorderTableMap = {
+  skills: { table: skills, tag: "skills" },
+  socialLinks: { table: socialLinks, tag: "socials" },
+  projects: { table: projects, tag: "projects" },
+  experiences: { table: experiences, tag: "experiences" },
+} as const;
+
+export async function reorderItems(
+  tableName: string,
+  items: { id: number; sortOrder: number }[],
+) {
+  await requireAdmin();
+
+  const entry = reorderTableMap[tableName as keyof typeof reorderTableMap];
+  if (!entry) throw new Error("Invalid table name");
+
+  if (items.length === 0) return { success: true };
+
+  // Batch individual updates
+  await Promise.all(
+    items.map((item) =>
+      db
+        .update(entry.table)
+        .set({ sortOrder: item.sortOrder })
+        .where(eq(entry.table.id, item.id)),
+    ),
+  );
+
+  invalidateTag(entry.tag);
+  return { success: true };
+}
+
 // ─── User Management ───
 
 export async function updateUserRole(userId: string, role: string) {
