@@ -54,11 +54,15 @@ interface ExperienceClientProps {
   experiences: Experience[];
 }
 
-export function ExperienceClient({ experiences: initialExperiences }: ExperienceClientProps) {
+export function ExperienceClient({
+  experiences: initialExperiences,
+}: ExperienceClientProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Experience | null>(null);
   const [experiences, setExperiences] = useState(
-    [...initialExperiences].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)),
+    [...initialExperiences].sort(
+      (a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0),
+    ),
   );
   const router = useRouter();
 
@@ -158,7 +162,9 @@ export function ExperienceClient({ experiences: initialExperiences }: Experience
           </TabsTrigger>
         </TabsList>
         <TabsContent value="work">{renderTable(work, "work")}</TabsContent>
-        <TabsContent value="education">{renderTable(education, "education")}</TabsContent>
+        <TabsContent value="education">
+          {renderTable(education, "education")}
+        </TabsContent>
       </Tabs>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

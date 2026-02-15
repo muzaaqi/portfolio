@@ -30,7 +30,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Plus, Trash2, Pencil, GripVertical, type LucideIcon } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  Pencil,
+  GripVertical,
+  type LucideIcon,
+} from "lucide-react";
 import { icons as allLucideIcons } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -53,7 +59,9 @@ function toPascal(slug: string) {
 
 function LucideIconPreview({ name }: { name: string | null }) {
   if (!name) return <span className="text-muted-foreground">—</span>;
-  const IconComp = allLucideIcons[toPascal(name) as keyof typeof allLucideIcons] as LucideIcon | undefined;
+  const IconComp = allLucideIcons[
+    toPascal(name) as keyof typeof allLucideIcons
+  ] as LucideIcon | undefined;
   if (IconComp) {
     return (
       <div className="flex items-center gap-2">

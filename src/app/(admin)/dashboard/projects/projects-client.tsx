@@ -48,7 +48,12 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { MoreHorizontal, Plus, GripVertical } from "lucide-react";
 import { toast } from "sonner";
-import { createProject, updateProject, deleteProject, reorderItems } from "../actions";
+import {
+  createProject,
+  updateProject,
+  deleteProject,
+  reorderItems,
+} from "../actions";
 import { ImageUpload } from "@/components/admin/image-upload";
 import type { Project } from "@/db/schema";
 import { useRouter } from "next/navigation";
@@ -57,11 +62,15 @@ interface ProjectsClientProps {
   projects: Project[];
 }
 
-export function ProjectsClient({ projects: initialProjects }: ProjectsClientProps) {
+export function ProjectsClient({
+  projects: initialProjects,
+}: ProjectsClientProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [projects, setProjects] = useState(
-    [...initialProjects].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)),
+    [...initialProjects].sort(
+      (a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0),
+    ),
   );
   const router = useRouter();
 

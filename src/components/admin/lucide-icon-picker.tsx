@@ -44,7 +44,9 @@ export function LucideIconPicker({ value, onChange }: LucideIconPickerProps) {
     if (!search) return allIconNames.slice(0, 80);
     const q = search.toLowerCase();
     return allIconNames
-      .filter((name) => name.toLowerCase().includes(q) || toKebab(name).includes(q))
+      .filter(
+        (name) => name.toLowerCase().includes(q) || toKebab(name).includes(q),
+      )
       .slice(0, 80);
   }, [search]);
 
