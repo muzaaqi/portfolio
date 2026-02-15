@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import Image from "next/image";
-import { Reorder } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -31,9 +30,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Plus, Pencil, Trash2, GripVertical } from "lucide-react";
+import { Plus, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { createSkill, updateSkill, deleteSkill, reorderItems } from "../actions";
+import { createSkill, updateSkill, deleteSkill } from "../actions";
 import { DeviconIconPicker } from "@/components/admin/devicon-icon-picker";
 import type { Skill } from "@/db/schema";
 import { useRouter } from "next/navigation";
@@ -64,10 +63,9 @@ interface SkillsClientProps {
   skills: Skill[];
 }
 
-export function SkillsClient({ skills: initialSkills }: SkillsClientProps) {
+export function SkillsClient({ skills }: SkillsClientProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Skill | null>(null);
-  const [skills, setSkills] = useState(initialSkills);
   const router = useRouter();
 
   function handleEdit(skill: Skill) {
@@ -79,28 +77,6 @@ export function SkillsClient({ skills: initialSkills }: SkillsClientProps) {
     setEditing(null);
     setDialogOpen(true);
   }
-
-  const handleReorder = useCallback(
-    async (category: string, newItems: Skill[]) => {
-      // Optimistically update local state
-      setSkills((prev) => {
-        const others = prev.filter((s) => s.category !== category);
-        return [...others, ...newItems];
-      });
-
-      // Persist new order
-      const updates = newItems.map((item, index) => ({
-        id: item.id,
-        sortOrder: index,
-      }));
-      try {
-        await reorderItems("skills", updates);
-      } catch {
-        toast.error("Failed to save order.");
-      }
-    },
-    [],
-  );
 
   const grouped = categoryOrder
     .map((cat) => ({
@@ -129,14 +105,7 @@ export function SkillsClient({ skills: initialSkills }: SkillsClientProps) {
               <h2 className="text-foreground/80 mb-4 text-lg font-semibold">
                 {group.label}
               </h2>
-              <Reorder.Group
-                axis="x"
-                values={group.items}
-                onReorder={(newItems) =>
-                  handleReorder(group.category, newItems)
-                }
-                className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6"
-              >
+              <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6">
                 {group.items.map((skill) => (
                   <SkillCard
                     key={skill.id}
@@ -144,7 +113,7 @@ export function SkillsClient({ skills: initialSkills }: SkillsClientProps) {
                     onEdit={() => handleEdit(skill)}
                   />
                 ))}
-              </Reorder.Group>
+              </div>
             </div>
           ))}
         </div>
@@ -181,26 +150,11 @@ export function SkillsClient({ skills: initialSkills }: SkillsClientProps) {
   );
 }
 
-function SkillCard({
-  skill,
-  onEdit,
-}: {
-  skill: Skill;
-  onEdit: () => void;
-}) {
+function SkillCard({ skill, onEdit }: { skill: Skill; onEdit: () => void }) {
   const [imgError, setImgError] = useState(false);
 
   return (
-    <Reorder.Item
-      value={skill}
-      className="group bg-card/50 border-border/50 hover:border-primary/30 hover:bg-card relative flex cursor-grab flex-col items-center gap-3 rounded-xl border p-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg active:cursor-grabbing"
-      whileDrag={{ scale: 1.05, boxShadow: "0 8px 32px rgba(0,0,0,0.15)" }}
-    >
-      {/* Drag handle indicator */}
-      <div className="text-muted-foreground/40 absolute top-1.5 left-1/2 -translate-x-1/2">
-        <GripVertical className="size-3" />
-      </div>
-
+    <div className="group bg-card/50 border-border/50 hover:border-primary/30 hover:bg-card relative flex flex-col items-center gap-3 rounded-xl border p-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
       {/* Edit button — visible on hover */}
       <button
         onClick={onEdit}
@@ -232,7 +186,7 @@ function SkillCard({
           {skill.description}
         </span>
       )}
-    </Reorder.Item>
+    </div>
   );
 }
 
@@ -251,6 +205,7 @@ function SkillForm({
     category: skill?.category ?? "language",
     icon: skill?.icon ?? "",
     description: skill?.description ?? "",
+    sortOrder: skill?.sortOrder ?? 0,
   });
   const [iconPreviewError, setIconPreviewError] = useState(false);
 
@@ -267,6 +222,7 @@ function SkillForm({
           | "tool"
           | "design"
           | "other",
+        sortOrder: Number(form.sortOrder),
       };
       if (skill) {
         await updateSkill(skill.id, data);
@@ -354,15 +310,27 @@ function SkillForm({
           maxLength={255}
         />
       </div>
-      <div className="space-y-2">
-        <Label>Icon</Label>
-        <DeviconIconPicker
-          value={form.icon}
-          onChange={(slug) => {
-            setForm((f) => ({ ...f, icon: slug }));
-            setIconPreviewError(false);
-          }}
-        />
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="space-y-2">
+          <Label>Icon</Label>
+          <DeviconIconPicker
+            value={form.icon}
+            onChange={(slug) => {
+              setForm((f) => ({ ...f, icon: slug }));
+              setIconPreviewError(false);
+            }}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label>Sort Order</Label>
+          <Input
+            type="number"
+            value={form.sortOrder}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, sortOrder: Number(e.target.value) }))
+            }
+          />
+        </div>
       </div>
 
       <DialogFooter className="flex gap-2 sm:justify-between">
@@ -385,9 +353,7 @@ function SkillForm({
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={onDelete}>
-                  Delete
-                </AlertDialogAction>
+                <AlertDialogAction onClick={onDelete}>Delete</AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
