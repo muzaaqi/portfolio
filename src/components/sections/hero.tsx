@@ -66,6 +66,7 @@ export function HeroSection({ profile, socialLinks }: HeroSectionProps) {
   const title = profile?.title ?? "Fullstack Developer";
   const tagline = profile?.heroTagline || "PORTFOLIO";
   const descriptor = profile?.heroDescriptor || "CREATIVE DEVELOPER";
+  const shortBio = profile?.shortBio || "Crafting digital experiences with code and creativity.";
 
   // Split text for scattered placement
   const {
@@ -148,7 +149,7 @@ export function HeroSection({ profile, socialLinks }: HeroSectionProps) {
         <span className="hero-text font-display text-foreground/60 text-[clamp(1rem,4vw,1.6rem)] leading-[0.9] uppercase">
           {title}
         </span>
-        <div className="hero-bottom flex items-center gap-3 pt-2 flex-col-reverse">
+        <div className="hero-bottom flex flex-col-reverse items-center gap-3 pt-2">
           {hireMeBtn}
           {socialLinksIcon}
         </div>
@@ -187,16 +188,16 @@ export function HeroSection({ profile, socialLinks }: HeroSectionProps) {
       {/* ── Top-right: title words stacked ── */}
       <div className="hero-text absolute top-[4%] right-[3%] z-5 hidden max-w-[35vw] text-right md:block">
         <span className="font-display text-foreground text-[clamp(2rem,5vw,4.5rem)] leading-[0.85] uppercase">
-          {titleWords.map((w, i) => (
-            <span key={i} className="block">
-              {w}
-            </span>
-          ))}
+        {titleWords.map((w, i) => (
+              <span key={i} className="block">
+                {w}
+              </span>
+            ))}
         </span>
       </div>
 
       {/* ── Center: tagline (customizable) — largest text, BEHIND image ── */}
-      <div className="hero-text absolute top-[45%] z-0 hidden w-full justify-center md:block">
+      <div className="hero-text absolute top-[45%] z-0 hidden w-full flex-col items-center justify-center md:flex">
         <span className="font-display text-foreground text-center text-[clamp(4rem,13vw,12rem)] leading-[0.78] uppercase">
           {taglineLines.map((line, i) => (
             <span key={i} className="block">
@@ -204,14 +205,17 @@ export function HeroSection({ profile, socialLinks }: HeroSectionProps) {
             </span>
           ))}
         </span>
+        <p className="text-foreground/60 mt-4 max-w-md text-center font-mono text-sm leading-relaxed">
+          {shortBio}
+        </p>
       </div>
 
       {/* ── Bottom-left: descriptor (customizable) ── */}
-      <div className="hero-text absolute bottom-[6%] left-[3%] z-15 hidden max-w-[35vw] md:block">
-        <span className="font-display text-foreground text-[clamp(1.8rem,4vw,3.5rem)] leading-[0.85] uppercase">
-          {descriptorLines.map((line, i) => (
+      <div className="hero-text absolute bottom-[6%] left-[3%] z-10 hidden max-w-[35vw] md:block">
+        <span className="font-display text-foreground text-[clamp(3rem,8vw,7.5rem)] leading-[0.85] uppercase">
+          {nameSecondHalf.map((w, i) => (
             <span key={i} className="block">
-              {line}
+              {w}
             </span>
           ))}
         </span>
@@ -221,11 +225,11 @@ export function HeroSection({ profile, socialLinks }: HeroSectionProps) {
       {nameSecondHalf.length > 0 && (
         <div className="hero-text absolute right-[3%] bottom-[6%] z-15 hidden max-w-[35vw] text-right md:block">
           <span className="font-display text-foreground text-[clamp(2rem,5vw,4.5rem)] leading-[0.85] uppercase">
-            {nameSecondHalf.map((w, i) => (
-              <span key={i} className="block">
-                {w}
-              </span>
-            ))}
+            {descriptorLines.map((line, i) => (
+            <span key={i} className="block">
+              {line}
+            </span>
+          ))}
           </span>
         </div>
       )}
