@@ -230,7 +230,7 @@ export function GuestbookSection({
             <p className="text-muted-foreground text-sm">
               Sign in to leave a message
             </p>
-            <div className="flex gap-3">
+            <div className="flex gap-3 max-w-svw">
               <Button
                 variant="outline"
                 onClick={() => signIn.social({ provider: "github" })}
