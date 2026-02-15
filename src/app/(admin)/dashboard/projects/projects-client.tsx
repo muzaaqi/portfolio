@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/select";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -426,13 +427,20 @@ function ProjectForm({
         </div>
       </div>
 
-      <Button type="submit" disabled={isPending} className="w-full">
-        {isPending
-          ? "Saving..."
-          : project
-            ? "Update Project"
-            : "Create Project"}
-      </Button>
+      <div className="flex gap-3">
+        <DialogClose asChild>
+          <Button type="button" variant="outline" className="flex-1">
+            Cancel
+          </Button>
+        </DialogClose>
+        <Button type="submit" disabled={isPending} className="flex-1">
+          {isPending
+            ? "Saving..."
+            : project
+              ? "Update Project"
+              : "Create Project"}
+        </Button>
+      </div>
     </form>
   );
 }

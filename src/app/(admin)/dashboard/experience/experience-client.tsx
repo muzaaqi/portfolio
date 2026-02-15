@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -394,9 +395,16 @@ function ExperienceForm({
         />
       </div>
 
-      <Button type="submit" disabled={isPending} className="w-full">
-        {isPending ? "Saving..." : experience ? "Update" : "Create"}
-      </Button>
+      <div className="flex gap-3">
+        <DialogClose asChild>
+          <Button type="button" variant="outline" className="flex-1">
+            Cancel
+          </Button>
+        </DialogClose>
+        <Button type="submit" disabled={isPending} className="flex-1">
+          {isPending ? "Saving..." : experience ? "Update" : "Create"}
+        </Button>
+      </div>
     </form>
   );
 }

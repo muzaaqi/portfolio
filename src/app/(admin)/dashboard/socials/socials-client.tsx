@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -310,9 +311,16 @@ function SocialForm({
           onChange={(slug) => setForm((f) => ({ ...f, icon: slug }))}
         />
       </div>
-      <Button type="submit" disabled={isPending} className="w-full">
-        {isPending ? "Saving..." : link ? "Update" : "Create"}
-      </Button>
+      <div className="flex gap-3">
+        <DialogClose asChild>
+          <Button type="button" variant="outline" className="flex-1">
+            Cancel
+          </Button>
+        </DialogClose>
+        <Button type="submit" disabled={isPending} className="flex-1">
+          {isPending ? "Saving..." : link ? "Update" : "Create"}
+        </Button>
+      </div>
     </form>
   );
 }

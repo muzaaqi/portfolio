@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -30,12 +31,34 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, GripVertical } from "lucide-react";
 import { toast } from "sonner";
-import { createSkill, updateSkill, deleteSkill } from "../actions";
+import {
+  createSkill,
+  updateSkill,
+  deleteSkill,
+  reorderItems,
+} from "../actions";
 import { DeviconIconPicker } from "@/components/admin/devicon-icon-picker";
 import type { Skill } from "@/db/schema";
 import { useRouter } from "next/navigation";
+
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  rectSortingStrategy,
+  useSortable,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 const categoryLabels: Record<string, string> = {
   language: "Languages",
@@ -63,10 +86,18 @@ interface SkillsClientProps {
   skills: Skill[];
 }
 
-export function SkillsClient({ skills }: SkillsClientProps) {
+export function SkillsClient({ skills: initialSkills }: SkillsClientProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Skill | null>(null);
+  const [skills, setSkills] = useState(
+    [...initialSkills].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)),
+  );
   const router = useRouter();
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor),
+  );
 
   function handleEdit(skill: Skill) {
     setEditing(skill);
@@ -77,6 +108,51 @@ export function SkillsClient({ skills }: SkillsClientProps) {
     setEditing(null);
     setDialogOpen(true);
   }
+
+  const handleDragEnd = useCallback(
+    async (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (!over || active.id === over.id) return;
+
+      // Find which category these belong to
+      const activeSkill = skills.find((s) => s.id === active.id);
+      const overSkill = skills.find((s) => s.id === over.id);
+      if (!activeSkill || !overSkill) return;
+      if (activeSkill.category !== overSkill.category) return; // no cross-category drag
+
+      const category = activeSkill.category;
+      const categoryItems = skills
+        .filter((s) => s.category === category)
+        .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+
+      const oldIndex = categoryItems.findIndex((s) => s.id === active.id);
+      const newIndex = categoryItems.findIndex((s) => s.id === over.id);
+
+      if (oldIndex === -1 || newIndex === -1) return;
+
+      const reordered = arrayMove(categoryItems, oldIndex, newIndex);
+
+      // Build full skills list with updated order
+      const otherSkills = skills.filter((s) => s.category !== category);
+      const updatedReordered = reordered.map((s, i) => ({
+        ...s,
+        sortOrder: i,
+      }));
+      setSkills([...otherSkills, ...updatedReordered]);
+
+      // Persist
+      const updates = updatedReordered.map((s, i) => ({
+        id: s.id,
+        sortOrder: i,
+      }));
+      try {
+        await reorderItems("skills", updates);
+      } catch {
+        toast.error("Failed to save order.");
+      }
+    },
+    [skills],
+  );
 
   const grouped = categoryOrder
     .map((cat) => ({
@@ -99,24 +175,35 @@ export function SkillsClient({ skills }: SkillsClientProps) {
       </div>
 
       {grouped.length > 0 ? (
-        <div className="space-y-8">
-          {grouped.map((group) => (
-            <div key={group.category}>
-              <h2 className="text-foreground/80 mb-4 text-lg font-semibold">
-                {group.label}
-              </h2>
-              <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6">
-                {group.items.map((skill) => (
-                  <SkillCard
-                    key={skill.id}
-                    skill={skill}
-                    onEdit={() => handleEdit(skill)}
-                  />
-                ))}
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <div className="space-y-8">
+            {grouped.map((group) => (
+              <div key={group.category}>
+                <h2 className="text-foreground/80 mb-4 text-lg font-semibold">
+                  {group.label}
+                </h2>
+                <SortableContext
+                  items={group.items.map((s) => s.id)}
+                  strategy={rectSortingStrategy}
+                >
+                  <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6">
+                    {group.items.map((skill) => (
+                      <SortableSkillCard
+                        key={skill.id}
+                        skill={skill}
+                        onEdit={() => handleEdit(skill)}
+                      />
+                    ))}
+                  </div>
+                </SortableContext>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        </DndContext>
       ) : (
         <p className="text-muted-foreground text-center">No skills yet.</p>
       )}
@@ -150,11 +237,57 @@ export function SkillsClient({ skills }: SkillsClientProps) {
   );
 }
 
-function SkillCard({ skill, onEdit }: { skill: Skill; onEdit: () => void }) {
+function SortableSkillCard({
+  skill,
+  onEdit,
+}: {
+  skill: Skill;
+  onEdit: () => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: skill.id });
+
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 50 : "auto",
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} {...attributes}>
+      <SkillCard skill={skill} onEdit={onEdit} dragListeners={listeners} />
+    </div>
+  );
+}
+
+function SkillCard({
+  skill,
+  onEdit,
+  dragListeners,
+}: {
+  skill: Skill;
+  onEdit: () => void;
+  dragListeners?: Record<string, unknown>;
+}) {
   const [imgError, setImgError] = useState(false);
 
   return (
     <div className="group bg-card/50 border-border/50 hover:border-primary/30 hover:bg-card relative flex flex-col items-center gap-3 rounded-xl border p-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+      {/* Drag handle */}
+      <button
+        className="absolute top-2 left-2 z-10 flex size-7 cursor-grab touch-none items-center justify-center rounded-md opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100 active:cursor-grabbing"
+        {...dragListeners}
+      >
+        <GripVertical className="text-muted-foreground size-3.5" />
+      </button>
+
       {/* Edit button — visible on hover */}
       <button
         onClick={onEdit}
@@ -205,7 +338,6 @@ function SkillForm({
     category: skill?.category ?? "language",
     icon: skill?.icon ?? "",
     description: skill?.description ?? "",
-    sortOrder: skill?.sortOrder ?? 0,
   });
   const [iconPreviewError, setIconPreviewError] = useState(false);
 
@@ -222,7 +354,6 @@ function SkillForm({
           | "tool"
           | "design"
           | "other",
-        sortOrder: Number(form.sortOrder),
       };
       if (skill) {
         await updateSkill(skill.id, data);
@@ -310,27 +441,15 @@ function SkillForm({
           maxLength={255}
         />
       </div>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-2">
-          <Label>Icon</Label>
-          <DeviconIconPicker
-            value={form.icon}
-            onChange={(slug) => {
-              setForm((f) => ({ ...f, icon: slug }));
-              setIconPreviewError(false);
-            }}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label>Sort Order</Label>
-          <Input
-            type="number"
-            value={form.sortOrder}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, sortOrder: Number(e.target.value) }))
-            }
-          />
-        </div>
+      <div className="space-y-2">
+        <Label>Icon</Label>
+        <DeviconIconPicker
+          value={form.icon}
+          onChange={(slug) => {
+            setForm((f) => ({ ...f, icon: slug }));
+            setIconPreviewError(false);
+          }}
+        />
       </div>
 
       <DialogFooter className="flex gap-2 sm:justify-between">
@@ -358,7 +477,11 @@ function SkillForm({
             </AlertDialogContent>
           </AlertDialog>
         ) : (
-          <div />
+          <DialogClose asChild>
+            <Button type="button" variant="outline">
+              Cancel
+            </Button>
+          </DialogClose>
         )}
         <Button type="submit" disabled={isPending}>
           {isPending ? "Saving..." : skill ? "Update" : "Create"}
