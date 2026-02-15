@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,15 +17,8 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from "@/components/ui/dialog";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,8 +30,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Badge } from "@/components/ui/badge";
-import { Plus, Trash2, Pencil } from "lucide-react";
+import { Plus, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { createSkill, updateSkill, deleteSkill } from "../actions";
 import type { Skill } from "@/db/schema";
@@ -51,6 +44,19 @@ const categoryLabels: Record<string, string> = {
   design: "Design",
   other: "Other",
 };
+
+const categoryOrder = [
+  "language",
+  "framework",
+  "tool",
+  "database",
+  "design",
+  "other",
+];
+
+function getDeviconUrl(slug: string) {
+  return `https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/${slug}/${slug}-original.svg`;
+}
 
 interface SkillsClientProps {
   skills: Skill[];
@@ -71,12 +77,13 @@ export function SkillsClient({ skills }: SkillsClientProps) {
     setDialogOpen(true);
   }
 
-  const grouped = skills.reduce<Record<string, Skill[]>>((acc, skill) => {
-    const cat = skill.category ?? "other";
-    if (!acc[cat]) acc[cat] = [];
-    acc[cat].push(skill);
-    return acc;
-  }, {});
+  const grouped = categoryOrder
+    .map((cat) => ({
+      category: cat,
+      label: categoryLabels[cat] ?? cat,
+      items: skills.filter((s) => s.category === cat),
+    }))
+    .filter((g) => g.items.length > 0);
 
   return (
     <div>
@@ -88,76 +95,26 @@ export function SkillsClient({ skills }: SkillsClientProps) {
         </Button>
       </div>
 
-      {Object.entries(grouped).map(([category, items]) => (
-        <div key={category} className="mb-6">
-          <h2 className="mb-3 text-lg font-semibold">
-            {categoryLabels[category] ?? category}
-          </h2>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Icon</TableHead>
-                <TableHead>Order</TableHead>
-                <TableHead className="w-24">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {items.map((skill) => (
-                <TableRow key={skill.id}>
-                  <TableCell className="font-medium">{skill.name}</TableCell>
-                  <TableCell className="max-w-xs truncate text-sm">
-                    {skill.icon ?? "—"}
-                  </TableCell>
-                  <TableCell>{skill.sortOrder}</TableCell>
-                  <TableCell>
-                    <div className="flex gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() => handleEdit(skill)}
-                      >
-                        <Pencil className="size-4" />
-                      </Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="ghost" size="icon-sm">
-                            <Trash2 className="size-4" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>
-                              Delete &quot;{skill.name}&quot;?
-                            </AlertDialogTitle>
-                            <AlertDialogDescription>
-                              This action cannot be undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={async () => {
-                                await deleteSkill(skill.id);
-                                toast.success("Deleted.");
-                                router.refresh();
-                              }}
-                            >
-                              Delete
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+      {grouped.length > 0 ? (
+        <div className="space-y-8">
+          {grouped.map((group) => (
+            <div key={group.category}>
+              <h2 className="text-foreground/80 mb-4 text-lg font-semibold">
+                {group.label}
+              </h2>
+              <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6">
+                {group.items.map((skill) => (
+                  <SkillCard
+                    key={skill.id}
+                    skill={skill}
+                    onEdit={() => handleEdit(skill)}
+                  />
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
-      ))}
-
-      {skills.length === 0 && (
+      ) : (
         <p className="text-muted-foreground text-center">No skills yet.</p>
       )}
 
@@ -167,11 +124,22 @@ export function SkillsClient({ skills }: SkillsClientProps) {
             <DialogTitle>{editing ? "Edit Skill" : "New Skill"}</DialogTitle>
           </DialogHeader>
           <SkillForm
+            key={editing?.id ?? "new"}
             skill={editing}
             onSuccess={() => {
               setDialogOpen(false);
               router.refresh();
             }}
+            onDelete={
+              editing
+                ? async () => {
+                    await deleteSkill(editing.id);
+                    toast.success("Deleted.");
+                    setDialogOpen(false);
+                    router.refresh();
+                  }
+                : undefined
+            }
           />
         </DialogContent>
       </Dialog>
@@ -179,12 +147,60 @@ export function SkillsClient({ skills }: SkillsClientProps) {
   );
 }
 
+function SkillCard({
+  skill,
+  onEdit,
+}: {
+  skill: Skill;
+  onEdit: () => void;
+}) {
+  const [imgError, setImgError] = useState(false);
+
+  return (
+    <div className="group bg-card/50 border-border/50 hover:border-primary/30 hover:bg-card relative flex flex-col items-center gap-3 rounded-xl border p-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+      {/* Edit button — visible on hover */}
+      <button
+        onClick={onEdit}
+        className="bg-background/80 border-border absolute top-2 right-2 z-10 flex size-7 items-center justify-center rounded-md border opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100"
+        title="Edit skill"
+      >
+        <Pencil className="size-3.5" />
+      </button>
+
+      <div className="bg-muted/50 group-hover:bg-primary/10 flex size-12 items-center justify-center rounded-lg transition-colors duration-300">
+        {skill.icon && !imgError ? (
+          <Image
+            src={getDeviconUrl(skill.icon)}
+            alt={skill.name}
+            width={28}
+            height={28}
+            className="object-contain transition-transform duration-300 group-hover:scale-110"
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          <span className="text-muted-foreground text-lg font-bold">
+            {skill.name.charAt(0)}
+          </span>
+        )}
+      </div>
+      <span className="text-sm font-medium">{skill.name}</span>
+      {skill.description && (
+        <span className="text-muted-foreground line-clamp-2 text-center text-[10px]">
+          {skill.description}
+        </span>
+      )}
+    </div>
+  );
+}
+
 function SkillForm({
   skill,
   onSuccess,
+  onDelete,
 }: {
   skill: Skill | null;
   onSuccess: () => void;
+  onDelete?: () => void;
 }) {
   const [isPending, setIsPending] = useState(false);
   const [form, setForm] = useState({
@@ -194,6 +210,7 @@ function SkillForm({
     description: skill?.description ?? "",
     sortOrder: skill?.sortOrder ?? 0,
   });
+  const [iconPreviewError, setIconPreviewError] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -227,6 +244,26 @@ function SkillForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Icon preview */}
+      <div className="flex justify-center">
+        <div className="bg-muted/50 flex size-16 items-center justify-center rounded-xl">
+          {form.icon && !iconPreviewError ? (
+            <Image
+              src={getDeviconUrl(form.icon)}
+              alt="icon preview"
+              width={36}
+              height={36}
+              className="object-contain"
+              onError={() => setIconPreviewError(true)}
+            />
+          ) : (
+            <span className="text-muted-foreground text-2xl font-bold">
+              {form.name.charAt(0) || "?"}
+            </span>
+          )}
+        </div>
+      </div>
+
       <div className="space-y-2">
         <Label>Name</Label>
         <Input
@@ -278,10 +315,13 @@ function SkillForm({
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label>Icon</Label>
+          <Label>Icon (devicon slug)</Label>
           <Input
             value={form.icon}
-            onChange={(e) => setForm((f) => ({ ...f, icon: e.target.value }))}
+            onChange={(e) => {
+              setForm((f) => ({ ...f, icon: e.target.value }));
+              setIconPreviewError(false);
+            }}
             placeholder="react, typescript, etc."
           />
         </div>
@@ -296,9 +336,40 @@ function SkillForm({
           />
         </div>
       </div>
-      <Button type="submit" disabled={isPending} className="w-full">
-        {isPending ? "Saving..." : skill ? "Update" : "Create"}
-      </Button>
+
+      <DialogFooter className="flex gap-2 sm:justify-between">
+        {onDelete ? (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button type="button" variant="destructive" size="sm">
+                <Trash2 className="mr-2 size-4" />
+                Delete
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  Delete &quot;{skill?.name}&quot;?
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={onDelete}>
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        ) : (
+          <div />
+        )}
+        <Button type="submit" disabled={isPending}>
+          {isPending ? "Saving..." : skill ? "Update" : "Create"}
+        </Button>
+      </DialogFooter>
     </form>
   );
 }
