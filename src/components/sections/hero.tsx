@@ -3,9 +3,10 @@
 import { useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Github, Instagram, Linkedin, Youtube } from "lucide-react";
+import { Github, Instagram, Linkedin, Youtube, Briefcase } from "lucide-react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
+import { Button } from "@/components/ui/button";
 import type { Profile, SocialLink } from "@/db/schema";
 
 gsap.registerPlugin(useGSAP);
@@ -21,6 +22,7 @@ export function HeroSection({ profile, socialLinks }: HeroSectionProps) {
   const nameRef = useRef<HTMLDivElement>(null);
   const subtitleRef = useRef<HTMLHeadingElement>(null);
   const socialsRef = useRef<HTMLDivElement>(null);
+  const ctaRef = useRef<HTMLDivElement>(null);
 
   useGSAP(
     () => {
@@ -57,6 +59,12 @@ export function HeroSection({ profile, socialLinks }: HeroSectionProps) {
           { scale: 0, opacity: 0 },
           { scale: 1, opacity: 1, duration: 0.4, stagger: 0.1 },
           "-=0.2",
+        )
+        .fromTo(
+          ctaRef.current,
+          { y: 20, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.5 },
+          "-=0.1",
         );
     },
     { scope: containerRef },
@@ -125,6 +133,18 @@ export function HeroSection({ profile, socialLinks }: HeroSectionProps) {
                 {link.icon}
               </Link>
             ))}
+      </div>
+
+      {/* Hire Me CTA */}
+      <div ref={ctaRef} className="mt-10">
+        {profile?.availableForHire && (
+          <Button asChild size="lg" className="group gap-2 rounded-full px-8">
+            <a href="#contact">
+              <Briefcase className="size-4 transition-transform group-hover:scale-110" />
+              Hire Me
+            </a>
+          </Button>
+        )}
       </div>
     </section>
   );

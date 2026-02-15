@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Send, Mail, MapPin } from "lucide-react";
+import { Send, Mail, MapPin, FileDown } from "lucide-react";
 import { motion } from "motion/react";
 import { toast } from "sonner";
 import { submitContactMessage } from "@/app/(public)/actions";
@@ -125,6 +125,20 @@ export function ContactSection({ profile }: ContactSectionProps) {
             <div className="flex items-center gap-3">
               <MapPin className="text-primary size-5" />
               <span className="text-muted-foreground">{profile.location}</span>
+            </div>
+          )}
+          {profile?.resumeUrl && (
+            <div className="pt-2">
+              <Button variant="outline" asChild className="gap-2">
+                <a
+                  href={profile.resumeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <FileDown className="size-4" />
+                  Download CV
+                </a>
+              </Button>
             </div>
           )}
         </motion.div>
