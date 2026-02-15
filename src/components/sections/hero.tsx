@@ -1,11 +1,12 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Github, Instagram, Linkedin, Youtube, Briefcase } from "lucide-react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
+import { useLenis } from "lenis/react";
 import { Button } from "@/components/ui/button";
 import type { Profile, SocialLink } from "@/db/schema";
 
@@ -23,6 +24,17 @@ export function HeroSection({ profile, socialLinks }: HeroSectionProps) {
   const subtitleRef = useRef<HTMLHeadingElement>(null);
   const socialsRef = useRef<HTMLDivElement>(null);
   const ctaRef = useRef<HTMLDivElement>(null);
+  const lenisRef = useRef<InstanceType<typeof import("lenis").default> | null>(
+    null,
+  );
+
+  useLenis((lenis) => {
+    lenisRef.current = lenis;
+  });
+
+  const scrollToContact = useCallback(() => {
+    lenisRef.current?.scrollTo("#contact", { lerp: 0.1, duration: 1.2 });
+  }, []);
 
   useGSAP(
     () => {
@@ -138,11 +150,13 @@ export function HeroSection({ profile, socialLinks }: HeroSectionProps) {
       {/* Hire Me CTA */}
       <div ref={ctaRef} className="mt-10">
         {profile?.availableForHire && (
-          <Button asChild size="lg" className="group gap-2 rounded-full px-8">
-            <a href="#contact">
-              <Briefcase className="size-4 transition-transform group-hover:scale-110" />
-              Hire Me
-            </a>
+          <Button
+            size="lg"
+            className="group gap-2 rounded-full px-8"
+            onClick={scrollToContact}
+          >
+            <Briefcase className="size-4 transition-transform group-hover:scale-110" />
+            Hire Me
           </Button>
         )}
       </div>
