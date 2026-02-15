@@ -3,8 +3,7 @@
 import { useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Github, Instagram, Linkedin, Youtube, Download } from "lucide-react";
+import { Github, Instagram, Linkedin, Youtube } from "lucide-react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import type { Profile, SocialLink } from "@/db/schema";
@@ -21,7 +20,6 @@ export function HeroSection({ profile, socialLinks }: HeroSectionProps) {
   const imageRef = useRef<HTMLDivElement>(null);
   const nameRef = useRef<HTMLDivElement>(null);
   const subtitleRef = useRef<HTMLHeadingElement>(null);
-  const buttonRef = useRef<HTMLDivElement>(null);
   const socialsRef = useRef<HTMLDivElement>(null);
 
   useGSAP(
@@ -42,18 +40,12 @@ export function HeroSection({ profile, socialLinks }: HeroSectionProps) {
       )
         .fromTo(
           nameRef.current,
-          { y: 30, opacity: 0 },
-          { y: 0, opacity: 1, duration: 0.6 },
+          { y: 40, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.7 },
           "-=0.3",
         )
         .fromTo(
           subtitleRef.current,
-          { y: 20, opacity: 0 },
-          { y: 0, opacity: 1, duration: 0.5 },
-          "-=0.2",
-        )
-        .fromTo(
-          buttonRef.current,
           { y: 20, opacity: 0 },
           { y: 0, opacity: 1, duration: 0.5 },
           "-=0.2",
@@ -72,56 +64,44 @@ export function HeroSection({ profile, socialLinks }: HeroSectionProps) {
 
   const name = profile?.name ?? "Muhammad Zaki As Shidiqi";
   const title = profile?.title ?? "Fullstack Developer";
-  const nameParts = name.split(" ");
 
   return (
     <section
       ref={containerRef}
       id="home"
       data-section="home"
-      className="container flex min-h-svh w-full flex-col items-center justify-center space-y-10 py-20"
+      className="container flex min-h-svh w-full flex-col items-center justify-center px-4 py-20"
     >
-      <div className="border-border drop-shadow-primary/20 flex flex-col-reverse gap-2 border-b-2 px-5 drop-shadow-lg md:flex-row">
-        <div ref={imageRef}>
-          <Image
-            src={profile?.profileImageUrl ?? "/profile.webp"}
-            alt="profile-picture"
-            width={300}
-            height={300}
-            priority
-          />
-        </div>
-        <div className="mb-5 space-y-5 md:self-end md:pl-8">
-          <div ref={nameRef}>
-            <h1 className="text-foreground/80 mb-4 text-5xl font-bold md:text-6xl">
-              {nameParts[0]}
-            </h1>
-            <h1 className="text-foreground/80 mb-4 text-4xl font-bold md:text-5xl">
-              <span className="text-foreground underline">{nameParts[1]}</span>{" "}
-              {nameParts.slice(2).join(" ")}
-            </h1>
-            <h2 ref={subtitleRef} className="font-mono text-xl md:text-2xl">
-              {title}
-            </h2>
-          </div>
-          <div ref={buttonRef}>
-            {profile?.resumeUrl ? (
-              <Button asChild>
-                <Link href={profile.resumeUrl} download>
-                  <Download className="mr-2 size-4" />
-                  Download CV
-                </Link>
-              </Button>
-            ) : (
-              <Button>
-                <Download className="mr-2 size-4" />
-                Download CV
-              </Button>
-            )}
-          </div>
-        </div>
+      {/* Profile image */}
+      <div ref={imageRef} className="relative mb-8">
+        <div className="bg-primary/20 absolute inset-0 scale-110 rounded-full blur-2xl" />
+        <Image
+          src={profile?.profileImageUrl ?? "/profile.webp"}
+          alt="profile-picture"
+          width={160}
+          height={160}
+          priority
+          className="relative z-10 rounded-full border-2 border-white/10 object-cover"
+        />
       </div>
-      <div ref={socialsRef} className="flex space-x-6">
+
+      {/* Name — bold centered typography */}
+      <div ref={nameRef} className="mb-4 text-center">
+        <h1 className="text-6xl leading-tight font-black tracking-tight md:text-8xl lg:text-9xl">
+          {name}
+        </h1>
+      </div>
+
+      {/* Title */}
+      <h2
+        ref={subtitleRef}
+        className="text-muted-foreground mb-10 text-center font-mono text-lg tracking-widest uppercase md:text-xl"
+      >
+        {title}
+      </h2>
+
+      {/* Social links */}
+      <div ref={socialsRef} className="flex gap-6">
         {socialLinks.length > 0
           ? socialLinks.map((link) => (
               <Link
@@ -129,7 +109,7 @@ export function HeroSection({ profile, socialLinks }: HeroSectionProps) {
                 href={link.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-muted-foreground/50 hover:text-foreground transition-colors"
+                className="text-muted-foreground hover:text-foreground transition-colors duration-200"
               >
                 <SocialIcon platform={link.platform} />
               </Link>
@@ -140,7 +120,7 @@ export function HeroSection({ profile, socialLinks }: HeroSectionProps) {
                 href={link.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-muted-foreground/50 hover:text-foreground transition-colors"
+                className="text-muted-foreground hover:text-foreground transition-colors duration-200"
               >
                 {link.icon}
               </Link>
