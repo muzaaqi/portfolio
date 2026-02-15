@@ -50,8 +50,41 @@ export default async function Home() {
     // Not authenticated — no likes to show
   }
 
+  // Build ItemList structured data for projects
+  const itemListSchema =
+    projects.length > 0
+      ? {
+          "@context": "https://schema.org",
+          "@type": "ItemList",
+          name: "Projects",
+          numberOfItems: projects.length,
+          itemListElement: projects.map((project, index) => ({
+            "@type": "ListItem",
+            position: index + 1,
+            item: {
+              "@type": "CreativeWork",
+              name: project.title,
+              description: project.description,
+              ...(project.imageUrl && { image: project.imageUrl }),
+              ...(project.liveUrl && { url: project.liveUrl }),
+              ...(project.repoUrl && {
+                codeRepository: project.repoUrl,
+              }),
+            },
+          })),
+        }
+      : null;
+
   return (
     <>
+      {itemListSchema && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(itemListSchema),
+          }}
+        />
+      )}
       <SectionObserver />
       <HeroSection profile={profile} socialLinks={socialLinks} />
       <AboutSection profile={profile} experiences={experiences} />

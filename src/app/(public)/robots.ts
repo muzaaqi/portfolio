@@ -1,5 +1,7 @@
 import { MetadataRoute } from "next";
 
+const BASE_URL = "https://www.muzaaqi.my.id";
+
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
@@ -9,7 +11,7 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/dashboard", "/dashboard/", "/login", "/api/"],
       },
     ],
-    sitemap: "https://muzaaqi.my.id/sitemap.xml",
-    host: "https://muzaaqi.my.id",
+    sitemap: `${BASE_URL}/sitemap.xml`,
+    host: BASE_URL,
   };
 }

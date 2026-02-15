@@ -1,11 +1,19 @@
 import { MetadataRoute } from "next";
+import { getProfile } from "@/db/queries";
 
-export default function manifest(): MetadataRoute.Manifest {
+export default async function manifest(): Promise<MetadataRoute.Manifest> {
+  const profile = await getProfile();
+
+  const name = profile?.name ?? "Muhammad Zaki As Shidiqi";
+  const title = profile?.title ?? "Fullstack Developer";
+  const bio =
+    profile?.shortBio ??
+    `Portfolio of ${name} – ${title} specializing in React, Next.js, and TypeScript.`;
+
   return {
-    name: "Muhammad Zaki As Shidiqi",
+    name: `${name} – ${title}`,
     short_name: "Muzaaqi",
-    description:
-      "Portfolio of Muhammad Zaki As Shidiqi – Fullstack Developer specializing in React, Next.js, and TypeScript.",
+    description: bio,
     start_url: "/",
     display: "standalone",
     background_color: "#ffffff",

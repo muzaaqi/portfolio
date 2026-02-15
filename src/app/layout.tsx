@@ -5,6 +5,9 @@ import "./globals.css";
 import { ThemeProvider } from "next-themes";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
+import { getProfile, getSocialLinks } from "@/db/queries";
+
+const BASE_URL = "https://www.muzaaqi.my.id";
 
 const inter = Inter({
   weight: "400",
@@ -23,185 +26,234 @@ const anton = Anton({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  metadataBase: new URL("https://muzaaqi.my.id"),
+export async function generateMetadata(): Promise<Metadata> {
+  const profile = await getProfile();
 
-  title: {
-    default: "Muhammad Zaki As Shidiqi",
-    template: "%s | Muhammad Zaki As Shidiqi",
-  },
-  description:
-    "Portfolio of Muhammad Zaki As Shidiqi – Fullstack Developer specializing in React, Next.js, and TypeScript. View projects, skills, and experience.",
-  keywords: [
-    "Muhammad Zaki As Shidiqi",
-    "Muzaaqi",
-    "MUZAAQI",
-    "Zaki",
-    "As Shidiqi",
-    "Fullstack Developer",
-    "Portfolio",
-    "Web Developer",
-    "React",
-    "Next.js",
-    "JavaScript",
-    "TypeScript",
-    "CSS",
-    "HTML",
-    "Digital Creator",
-    "Gamer",
-    "Programmer",
-    "Coding",
-    "Web Design",
-    "UI/UX",
-    "Open Source",
-    "Projects",
-    "Tech Enthusiast",
-    "Software Engineer",
-    "Youtuber",
-  ],
-  authors: [{ name: "Muhammad Zaki As Shidiqi", url: "https://muzaaqi.my.id" }],
-  creator: "Muhammad Zaki As Shidiqi",
-  publisher: "Muhammad Zaki As Shidiqi",
-  category: "technology",
+  const name = profile?.name ?? "Muhammad Zaki As Shidiqi";
+  const title = profile?.title ?? "Fullstack Developer";
+  const bio =
+    profile?.shortBio ??
+    profile?.bio ??
+    `Portfolio of ${name} – ${title} specializing in React, Next.js, and TypeScript. View projects, skills, and experience.`;
 
-  alternates: {
-    canonical: "https://muzaaqi.my.id",
-  },
+  return {
+    metadataBase: new URL(BASE_URL),
 
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
+    title: {
+      default: `${name} – ${title} Portfolio`,
+      template: `%s | ${name}`,
+    },
+    description: bio,
+    keywords: [
+      name,
+      "Muzaaqi",
+      "MUZAAQI",
+      title,
+      "Portfolio",
+      "Web Developer",
+      "React",
+      "Next.js",
+      "JavaScript",
+      "TypeScript",
+      "CSS",
+      "HTML",
+      "Digital Creator",
+      "Programmer",
+      "Coding",
+      "Web Design",
+      "UI/UX",
+      "Open Source",
+      "Projects",
+      "Tech Enthusiast",
+      "Software Engineer",
+    ],
+    authors: [{ name, url: BASE_URL }],
+    creator: name,
+    publisher: name,
+    category: "technology",
+
+    alternates: {
+      canonical: "/",
+    },
+
+    robots: {
       index: true,
       follow: true,
-      "max-video-preview": -1,
-      "max-image-preview": "large",
-      "max-snippet": -1,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-video-preview": -1,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+      },
     },
-  },
 
-  openGraph: {
-    type: "website",
-    url: "https://muzaaqi.my.id",
-    siteName: "Muhammad Zaki As Shidiqi",
-    title: "Muhammad Zaki As Shidiqi – Fullstack Developer Portfolio",
-    description:
-      "Portfolio of Muhammad Zaki As Shidiqi – Fullstack Developer specializing in React, Next.js, and TypeScript.",
-    images: [
-      {
-        url: "/og-image.webp",
-        width: 1200,
-        height: 630,
-        alt: "Muhammad Zaki As Shidiqi – Portfolio Preview",
-        type: "image/webp",
-      },
-    ],
-    locale: "id_ID",
-  },
+    verification: {
+      google: process.env.GOOGLE_VERIFICATION_CODE,
+      // yandex: "YOUR_YANDEX_CODE",
+      // other: { "msvalidate.01": "YOUR_BING_CODE" },
+    },
 
-  twitter: {
-    card: "summary_large_image",
-    title: "Muhammad Zaki As Shidiqi – Fullstack Developer Portfolio",
-    description:
-      "Portfolio of Muhammad Zaki As Shidiqi – Fullstack Developer specializing in React, Next.js, and TypeScript.",
-    images: [
-      {
-        url: "/og-image.webp",
-        width: 1200,
-        height: 630,
-        alt: "Muhammad Zaki As Shidiqi – Portfolio Preview",
-      },
-    ],
-  },
+    openGraph: {
+      type: "website",
+      url: BASE_URL,
+      siteName: name,
+      title: `${name} – ${title} Portfolio`,
+      description: bio,
+      images: [
+        {
+          url: "/og-image.webp",
+          width: 1200,
+          height: 630,
+          alt: `${name} – Portfolio Preview`,
+          type: "image/webp",
+        },
+      ],
+      locale: "en_US",
+    },
 
-  icons: {
-    icon: [
-      {
-        url: "/favicon-light.ico",
-        media: "(prefers-color-scheme: light)",
-      },
-      {
-        url: "/favicon-dark.ico",
-        media: "(prefers-color-scheme: dark)",
-      },
-    ],
-    shortcut: ["/favicon-light.ico"],
-  },
-};
+    twitter: {
+      card: "summary_large_image",
+      title: `${name} – ${title} Portfolio`,
+      description: bio,
+      images: [
+        {
+          url: "/og-image.webp",
+          width: 1200,
+          height: 630,
+          alt: `${name} – Portfolio Preview`,
+        },
+      ],
+    },
 
-export default function RootLayout({
+    icons: {
+      icon: [
+        {
+          url: "/favicon-light.ico",
+          media: "(prefers-color-scheme: light)",
+        },
+        {
+          url: "/favicon-dark.ico",
+          media: "(prefers-color-scheme: dark)",
+        },
+      ],
+      shortcut: ["/favicon-light.ico"],
+    },
+  };
+}
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const [profile, socialLinksData] = await Promise.all([
+    getProfile(),
+    getSocialLinks(),
+  ]);
+
+  const name = profile?.name ?? "Muhammad Zaki As Shidiqi";
+  const title = profile?.title ?? "Fullstack Developer";
+  const bio =
+    profile?.shortBio ??
+    profile?.bio ??
+    `${title} specializing in React, Next.js, and TypeScript.`;
+  const profileImage = profile?.profileImageUrl
+    ? `${BASE_URL}${profile.profileImageUrl.startsWith("/") ? "" : "/"}${profile.profileImageUrl}`
+    : `${BASE_URL}/profile.webp`;
+
+  // Build sameAs from social links DB, falling back to hardcoded
+  const sameAs =
+    socialLinksData.length > 0
+      ? socialLinksData.map((link) => link.url)
+      : [
+          "https://instagram.com/muzaaqi_",
+          "https://github.com/muzaaqi",
+          "https://www.linkedin.com/in/muzaaqi/",
+          "https://www.youtube.com/@muzaaqi",
+        ];
+
+  const personSchema = {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name,
+    alternateName: "Muzaaqi",
+    url: BASE_URL,
+    image: profileImage,
+    jobTitle: title,
+    description: bio,
+    ...(profile?.email && { email: `mailto:${profile.email}` }),
+    ...(profile?.location && {
+      address: {
+        "@type": "PostalAddress",
+        addressLocality: profile.location,
+      },
+    }),
+    sameAs,
+  };
+
+  const websiteSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: `${name} Portfolio`,
+    url: BASE_URL,
+    description: `Portfolio of ${name} – ${bio}`,
+    author: {
+      "@type": "Person",
+      name,
+    },
+  };
+
+  const profilePageSchema = {
+    "@context": "https://schema.org",
+    "@type": "ProfilePage",
+    mainEntity: {
+      "@type": "Person",
+      name,
+      url: BASE_URL,
+    },
+    dateModified: profile?.updatedAt
+      ? new Date(profile.updatedAt).toISOString().split("T")[0]
+      : new Date().toISOString().split("T")[0],
+  };
+
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <link
+          rel="preconnect"
+          href="https://www.googletagmanager.com"
+          crossOrigin="anonymous"
+        />
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+      </head>
       <body
         className={`${inter.variable} ${jetBrainsMono.variable} ${anton.variable} antialiased`}
       >
-        <Script
-          id="person-schema"
+        <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "Person",
-              name: "Muhammad Zaki As Shidiqi",
-              alternateName: "Muzaaqi",
-              url: "https://muzaaqi.my.id",
-              image: "https://muzaaqi.my.id/profile.webp",
-              jobTitle: "Fullstack Developer",
-              description:
-                "Fullstack Developer specializing in React, Next.js, and TypeScript.",
-              sameAs: [
-                "https://instagram.com/muzaaqi_",
-                "https://github.com/muzaaqi",
-                "https://www.linkedin.com/in/muzaaqi/",
-                "https://www.youtube.com/@muzaaqi",
-              ],
-            }),
+            __html: JSON.stringify(personSchema),
           }}
         />
-        <Script
-          id="website-schema"
+        <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "WebSite",
-              name: "Muhammad Zaki As Shidiqi Portfolio",
-              url: "https://muzaaqi.my.id",
-              description:
-                "Portfolio of Muhammad Zaki As Shidiqi – Fullstack Developer specializing in React, Next.js, and TypeScript.",
-              author: {
-                "@type": "Person",
-                name: "Muhammad Zaki As Shidiqi",
-              },
-            }),
+            __html: JSON.stringify(websiteSchema),
           }}
         />
-        <Script
-          id="profile-page-schema"
+        <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "ProfilePage",
-              mainEntity: {
-                "@type": "Person",
-                name: "Muhammad Zaki As Shidiqi",
-                url: "https://muzaaqi.my.id",
-              },
-              dateCreated: "2024-01-01",
-              dateModified: new Date().toISOString().split("T")[0],
-            }),
+            __html: JSON.stringify(profilePageSchema),
           }}
         />
         <Script
           async
           src="https://www.googletagmanager.com/gtag/js?id=G-DQ9JB8BVDX"
+          strategy="lazyOnload"
         />
-        <Script id="google-analytics">
+        <Script id="google-analytics" strategy="lazyOnload">
           {`
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
