@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import Link from "next/link";
 import {
   GitCommit,
@@ -12,9 +12,14 @@ import {
   ExternalLink,
   Github,
   MessageSquare,
+  Activity,
 } from "lucide-react";
 import { motion } from "motion/react";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import type {
   GitHubEvent,
@@ -50,7 +55,7 @@ export function ActivitySection({
     <section
       id="activity"
       data-section="activity"
-      className="container mx-auto min-h-svh px-4 py-20 md:pr-20"
+      className="container mx-auto overflow-hidden px-4 py-20 md:pr-20"
     >
       {/* Section Header */}
       <motion.div
@@ -60,7 +65,6 @@ export function ActivitySection({
         viewport={{ once: true }}
       >
         <div className="mb-2 flex items-center gap-3">
-          <Github className="text-primary size-8" />
           <h2 className="text-4xl font-bold">Activity</h2>
         </div>
         <div className="bg-primary mb-12 h-1 w-16" />
@@ -143,8 +147,8 @@ export function ActivitySection({
 
 function ContributionGraph({ data }: { data: ContributionData }) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [cellSize, setCellSize] = useState(10);
 
-  // Flatten all days for level mapping
   const levelColors: Record<string, string> = {
     NONE: "var(--muted)",
     FIRST_QUARTILE: "oklch(0.75 0.10 145)",
@@ -153,14 +157,51 @@ function ContributionGraph({ data }: { data: ContributionData }) {
     FOURTH_QUARTILE: "oklch(0.40 0.18 145)",
   };
 
-  // Take only the last 26 weeks to fit nicely
-  const weeks = data.weeks.slice(-26);
-  const months = getMonthLabels(weeks);
+  const weeks = data.weeks;
+  const gap = 2;
+  const dayLabelWidth = 28;
+
+  // Dynamically size cells to fill available width
+  useEffect(() => {
+    function calc() {
+      if (!containerRef.current) return;
+      // 32 = 16px padding each side
+      const available = containerRef.current.clientWidth - dayLabelWidth - 32;
+      const cols = weeks.length;
+      if (cols === 0) return;
+      const size = Math.floor((available - gap * (cols - 1)) / cols);
+      setCellSize(Math.max(4, Math.min(14, size)));
+    }
+    calc();
+    const ro = new ResizeObserver(calc);
+    if (containerRef.current) ro.observe(containerRef.current);
+    return () => ro.disconnect();
+  }, [weeks.length]);
+
+  const colWidth = cellSize + gap;
+
+  // Build month labels positioned at the correct week index
+  const monthLabels: { label: string; weekIndex: number }[] = [];
+  let prevMonth = "";
+  for (let i = 0; i < weeks.length; i++) {
+    const firstDay = weeks[i].contributionDays[0];
+    if (!firstDay) continue;
+    const m = new Date(firstDay.date).toLocaleDateString("en-US", {
+      month: "short",
+    });
+    if (m !== prevMonth) {
+      monthLabels.push({ label: m, weekIndex: i });
+      prevMonth = m;
+    }
+  }
 
   return (
-    <div className="border-border bg-card overflow-hidden border shadow-md">
+    <div
+      ref={containerRef}
+      className="border-border bg-card overflow-hidden border shadow-md"
+    >
       <div className="border-border flex items-center justify-between border-b px-4 py-3">
-        <h3 className="text-sm font-bold uppercase tracking-wider">
+        <h3 className="text-sm font-bold tracking-wider uppercase">
           Contributions
         </h3>
         <span className="bg-primary text-primary-foreground px-2 py-0.5 text-xs font-bold">
@@ -169,15 +210,14 @@ function ContributionGraph({ data }: { data: ContributionData }) {
       </div>
 
       <div className="p-4">
-        {/* Month labels */}
-        <div className="mb-1 flex text-[10px]">
-          <div className="w-6 shrink-0" />
-          <div className="flex flex-1">
-            {months.map((m, i) => (
+        {/* Month labels aligned to week columns */}
+        <div className="relative mb-1" style={{ paddingLeft: dayLabelWidth }}>
+          <div className="relative h-4">
+            {monthLabels.map((m, i) => (
               <span
                 key={i}
-                className="text-muted-foreground"
-                style={{ flex: m.span, minWidth: 0 }}
+                className="text-muted-foreground absolute text-[10px] leading-none"
+                style={{ left: m.weekIndex * colWidth }}
               >
                 {m.label}
               </span>
@@ -185,14 +225,18 @@ function ContributionGraph({ data }: { data: ContributionData }) {
           </div>
         </div>
 
-        {/* Grid */}
-        <div ref={containerRef} className="flex gap-[3px] overflow-x-auto">
-          {/* Day labels */}
-          <div className="flex shrink-0 flex-col gap-[3px]">
+        {/* Grid: day labels + week columns */}
+        <div className="flex" style={{ gap }}>
+          {/* Day-of-week labels */}
+          <div
+            className="flex shrink-0 flex-col"
+            style={{ width: dayLabelWidth - gap, gap }}
+          >
             {["", "Mon", "", "Wed", "", "Fri", ""].map((d, i) => (
               <span
                 key={i}
-                className="text-muted-foreground flex h-[12px] items-center text-[9px] leading-none"
+                className="text-muted-foreground flex items-center text-[9px] leading-none"
+                style={{ height: cellSize }}
               >
                 {d}
               </span>
@@ -201,21 +245,20 @@ function ContributionGraph({ data }: { data: ContributionData }) {
 
           {/* Week columns */}
           {weeks.map((week, wi) => (
-            <div key={wi} className="flex flex-col gap-[3px]">
+            <div key={wi} className="flex flex-col" style={{ gap }}>
               {week.contributionDays.map((day, di) => (
                 <Tooltip key={di}>
                   <TooltipTrigger asChild>
                     <div
-                      className="size-[12px] border border-black/5 transition-transform hover:scale-150 dark:border-white/5"
+                      className="border border-black/5 transition-transform hover:scale-125 dark:border-white/5"
                       style={{
+                        width: cellSize,
+                        height: cellSize,
                         backgroundColor: levelColors[day.contributionLevel],
                       }}
                     />
                   </TooltipTrigger>
-                  <TooltipContent
-                    side="top"
-                    className="text-xs"
-                  >
+                  <TooltipContent side="top" className="text-xs">
                     <span className="font-bold">
                       {day.contributionCount} contributions
                     </span>{" "}
@@ -250,7 +293,7 @@ function LanguageChart({ languages }: { languages: LanguageStat[] }) {
   return (
     <div className="border-border bg-card overflow-hidden border shadow-md">
       <div className="border-border border-b px-4 py-3">
-        <h3 className="text-sm font-bold uppercase tracking-wider">
+        <h3 className="text-sm font-bold tracking-wider uppercase">
           Top Languages
         </h3>
       </div>
@@ -303,7 +346,7 @@ function RecentActivity({ events }: { events: GitHubEvent[] }) {
   return (
     <div className="border-border bg-card overflow-hidden border shadow-md">
       <div className="border-border border-b px-4 py-3">
-        <h3 className="text-sm font-bold uppercase tracking-wider">
+        <h3 className="text-sm font-bold tracking-wider uppercase">
           Recent Activity
         </h3>
       </div>
@@ -376,7 +419,7 @@ function RepositoryList({ repos }: { repos: GitHubRepo[] }) {
   return (
     <div className="border-border bg-card overflow-hidden border shadow-md">
       <div className="border-border flex items-center justify-between border-b px-4 py-3">
-        <h3 className="text-sm font-bold uppercase tracking-wider">
+        <h3 className="text-sm font-bold tracking-wider uppercase">
           Repositories
         </h3>
         <div className="flex items-center gap-1">
@@ -409,9 +452,7 @@ function RepositoryList({ repos }: { repos: GitHubRepo[] }) {
             onClick={() => setShowAll(!showAll)}
             className="text-primary hover:text-primary/80 text-sm font-medium transition-colors"
           >
-            {showAll
-              ? "Show less"
-              : `Show all ${repos.length} repositories`}
+            {showAll ? "Show less" : `Show all ${repos.length} repositories`}
           </button>
         </div>
       )}
@@ -475,7 +516,7 @@ function parseEvent(event: GitHubEvent) {
     case "PushEvent":
       return {
         icon: <GitCommit className="size-3.5" />,
-        description: `Pushed ${(payload.commits as unknown[])?.length ?? 0} commit(s)`,
+        description: `Pushed ${(payload.size as number) ?? (payload.commits as unknown[])?.length ?? 0} commit(s)`,
       };
     case "CreateEvent":
       return {
@@ -520,9 +561,7 @@ function capitalize(str: string) {
 }
 
 function getTimeAgo(dateStr: string) {
-  const seconds = Math.floor(
-    (Date.now() - new Date(dateStr).getTime()) / 1000,
-  );
+  const seconds = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
   if (seconds < 60) return "just now";
   const minutes = Math.floor(seconds / 60);
   if (minutes < 60) return `${minutes}m ago`;
@@ -540,29 +579,6 @@ function formatDate(dateStr: string) {
     day: "numeric",
     year: "numeric",
   });
-}
-
-function getMonthLabels(
-  weeks: { contributionDays: { date: string }[] }[],
-): { label: string; span: number }[] {
-  const months: { label: string; span: number }[] = [];
-  let currentMonth = "";
-
-  for (const week of weeks) {
-    const firstDay = week.contributionDays[0];
-    if (!firstDay) continue;
-    const m = new Date(firstDay.date).toLocaleDateString("en-US", {
-      month: "short",
-    });
-    if (m !== currentMonth) {
-      months.push({ label: m, span: 1 });
-      currentMonth = m;
-    } else {
-      months[months.length - 1].span++;
-    }
-  }
-
-  return months;
 }
 
 // Repo language colors (subset, matched to oklch theme)
