@@ -12,7 +12,6 @@ import {
   ExternalLink,
   Github,
   MessageSquare,
-  Activity,
 } from "lucide-react";
 import { motion } from "motion/react";
 import {
@@ -70,9 +69,9 @@ export function ActivitySection({
         <div className="bg-primary mb-12 h-1 w-16" />
       </motion.div>
 
-      <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
+      <div className="grid min-w-0 gap-8 lg:grid-cols-[1fr_320px]">
         {/* Left column — Contributions + Repos */}
-        <div className="space-y-8">
+        <div className="min-w-0 space-y-8">
           {contributions && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -95,7 +94,7 @@ export function ActivitySection({
         </div>
 
         {/* Right column — Languages + Recent Activity */}
-        <div className="space-y-8">
+        <div className="min-w-0 space-y-8">
           {languages.length > 0 && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -170,7 +169,7 @@ function ContributionGraph({ data }: { data: ContributionData }) {
       const cols = weeks.length;
       if (cols === 0) return;
       const size = Math.floor((available - gap * (cols - 1)) / cols);
-      setCellSize(Math.max(4, Math.min(14, size)));
+      setCellSize(Math.max(2, Math.min(14, size)));
     }
     calc();
     const ro = new ResizeObserver(calc);
@@ -209,9 +208,9 @@ function ContributionGraph({ data }: { data: ContributionData }) {
         </span>
       </div>
 
-      <div className="p-4">
+      <div className="overflow-hidden p-4">
         {/* Month labels aligned to week columns */}
-        <div className="relative mb-1" style={{ paddingLeft: dayLabelWidth }}>
+        <div className="relative mb-1 overflow-hidden" style={{ paddingLeft: dayLabelWidth }}>
           <div className="relative h-4">
             {monthLabels.map((m, i) => (
               <span
@@ -226,7 +225,7 @@ function ContributionGraph({ data }: { data: ContributionData }) {
         </div>
 
         {/* Grid: day labels + week columns */}
-        <div className="flex" style={{ gap }}>
+        <div className="flex overflow-hidden" style={{ gap }}>
           {/* Day-of-week labels */}
           <div
             className="flex shrink-0 flex-col"
@@ -418,17 +417,17 @@ function RepositoryList({ repos }: { repos: GitHubRepo[] }) {
 
   return (
     <div className="border-border bg-card overflow-hidden border shadow-md">
-      <div className="border-border flex items-center justify-between border-b px-4 py-3">
-        <h3 className="text-sm font-bold tracking-wider uppercase">
+      <div className="border-border flex items-center justify-between gap-2 border-b px-3 py-3 sm:px-4">
+        <h3 className="shrink-0 text-sm font-bold tracking-wider uppercase">
           Repositories
         </h3>
-        <div className="flex items-center gap-1">
+        <div className="flex shrink-0 items-center gap-1">
           <ArrowUpDown className="text-muted-foreground mr-1 size-3" />
           {(["stars", "updated", "name"] as SortKey[]).map((key) => (
             <button
               key={key}
               onClick={() => setSortBy(key)}
-              className={`px-2 py-0.5 text-xs font-medium transition-colors ${
+              className={`px-1.5 py-0.5 text-[11px] font-medium transition-colors sm:px-2 sm:text-xs ${
                 sortBy === key
                   ? "bg-primary text-primary-foreground"
                   : "text-muted-foreground hover:text-foreground"
@@ -440,7 +439,7 @@ function RepositoryList({ repos }: { repos: GitHubRepo[] }) {
         </div>
       </div>
 
-      <div className="grid gap-px bg-black/5 sm:grid-cols-2 dark:bg-white/5">
+      <div className="grid grid-cols-1 gap-px bg-black/5 sm:grid-cols-2 dark:bg-white/5">
         {displayed.map((repo) => (
           <RepoCard key={repo.id} repo={repo} />
         ))}
@@ -468,7 +467,7 @@ function RepoCard({ repo }: { repo: GitHubRepo }) {
       rel="noopener noreferrer"
       className="bg-card hover:bg-accent/50 group block p-4 transition-colors"
     >
-      <div className="mb-2 flex items-start gap-2">
+      <div className="mb-2 flex items-start gap-2 overflow-hidden">
         <span className="text-primary truncate font-mono text-sm font-bold">
           {repo.name}
         </span>
@@ -516,7 +515,12 @@ function parseEvent(event: GitHubEvent) {
     case "PushEvent":
       return {
         icon: <GitCommit className="size-3.5" />,
-        description: `Pushed ${(payload.size as number) ?? (payload.commits as unknown[])?.length ?? 0} commit(s)`,
+        description: `Pushed ${
+          (payload.size as number) ??
+          (payload.distinct_size as number) ??
+          (payload.commits as unknown[])?.length ??
+          1
+        } commit(s)`,
       };
     case "CreateEvent":
       return {
