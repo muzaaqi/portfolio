@@ -32,6 +32,7 @@ export function ProfileForm({ profile }: ProfileFormProps) {
       availableForHire: profile?.availableForHire ?? false,
       heroTagline: profile?.heroTagline ?? "",
       heroDescriptor: profile?.heroDescriptor ?? "",
+      githubUsername: profile?.githubUsername ?? "",
     }),
     [profile],
   );
@@ -165,6 +166,25 @@ export function ProfileForm({ profile }: ProfileFormProps) {
                     Descriptor text bottom-left on hero
                   </p>
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="githubUsername">GitHub Username</Label>
+                <Input
+                  id="githubUsername"
+                  value={formData.githubUsername}
+                  onChange={(e) =>
+                    setFormData((d) => ({
+                      ...d,
+                      githubUsername: e.target.value,
+                    }))
+                  }
+                  placeholder="e.g. muzaaqi"
+                />
+                <p className="text-muted-foreground text-xs">
+                  Used for the Activity section (GitHub stats &amp;
+                  contributions)
+                </p>
               </div>
 
               <div className="space-y-2">

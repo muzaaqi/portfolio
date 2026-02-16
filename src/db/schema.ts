@@ -106,6 +106,7 @@ export const profile = pgTable("profile", {
   availableForHire: boolean("available_for_hire").default(false),
   heroTagline: text("hero_tagline"),
   heroDescriptor: text("hero_descriptor"),
+  githubUsername: varchar("github_username", { length: 100 }),
   updatedAt: timestamp("updated_at")
     .defaultNow()
     .$onUpdate(() => new Date()),

@@ -1,0 +1,1 @@
+ALTER TABLE "profile" ADD COLUMN "github_username" varchar(100);

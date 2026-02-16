@@ -258,3 +258,36 @@ export async function getRecentMessages(limit = 5) {
 export async function getAllUsers() {
   return db.select().from(user).orderBy(desc(user.createdAt));
 }
+
+// ─── GitHub Activity ───
+
+import {
+  getRecentActivity as fetchRecentActivity,
+  getTopLanguages as fetchTopLanguages,
+  getContributionGraph as fetchContributionGraph,
+  getRepositories as fetchRepositories,
+} from "@/lib/github";
+
+export const getGitHubActivity = unstable_cache(
+  async (username: string) => fetchRecentActivity(username, 5),
+  ["github-activity"],
+  { revalidate: 1800, tags: ["github"] },
+);
+
+export const getGitHubLanguages = unstable_cache(
+  async (username: string) => fetchTopLanguages(username),
+  ["github-languages"],
+  { revalidate: 86400, tags: ["github"] },
+);
+
+export const getGitHubContributions = unstable_cache(
+  async (username: string) => fetchContributionGraph(username),
+  ["github-contributions"],
+  { revalidate: 3600, tags: ["github"] },
+);
+
+export const getGitHubRepos = unstable_cache(
+  async (username: string) => fetchRepositories(username),
+  ["github-repos"],
+  { revalidate: 3600, tags: ["github"] },
+);

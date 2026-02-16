@@ -46,6 +46,7 @@ export async function updateProfile(data: {
   availableForHire?: boolean;
   heroTagline?: string;
   heroDescriptor?: string;
+  githubUsername?: string;
 }) {
   await requireAdmin();
 

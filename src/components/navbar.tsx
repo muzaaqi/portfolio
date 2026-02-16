@@ -11,6 +11,7 @@ import {
   MessageSquare,
   Menu,
   LayoutDashboard,
+  Activity,
 } from "lucide-react";
 import { ThemeSwitch } from "./theme-switch";
 import Logo from "./logo";
@@ -34,6 +35,7 @@ const items = [
   { id: "home", icon: <House />, label: "Home" },
   { id: "about", icon: <User />, label: "About" },
   { id: "skills", icon: <Code />, label: "Skills" },
+  { id: "activity", icon: <Activity />, label: "Activity" },
   { id: "projects", icon: <PanelsTopLeft />, label: "Projects" },
   { id: "contact", icon: <Mail />, label: "Contact" },
   { id: "guestbook", icon: <MessageSquare />, label: "Guestbook" },

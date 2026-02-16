@@ -29,6 +29,13 @@
       "when": 1771140172602,
       "tag": "0003_add_hero_fields",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1771222453215,
+      "tag": "0004_demonic_wolf_cub",
+      "breakpoints": true
     }
   ]
 }

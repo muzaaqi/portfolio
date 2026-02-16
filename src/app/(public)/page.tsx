@@ -6,11 +6,16 @@ import {
   getExperiences,
   getApprovedGuestbook,
   getUserGuestbookLikes,
+  getGitHubActivity,
+  getGitHubLanguages,
+  getGitHubContributions,
+  getGitHubRepos,
 } from "@/db/queries";
 import {
   HeroSection,
   AboutSection,
   SkillsSection,
+  ActivitySection,
   ProjectsSection,
   ContactSection,
   GuestbookSection,
@@ -37,6 +42,17 @@ export default async function Home() {
     getExperiences(),
     getApprovedGuestbook(),
   ]);
+
+  // Fetch GitHub data if username is configured
+  const githubUsername = profile?.githubUsername ?? "";
+  const [ghEvents, ghLanguages, ghContributions, ghRepos] = githubUsername
+    ? await Promise.all([
+        getGitHubActivity(githubUsername),
+        getGitHubLanguages(githubUsername),
+        getGitHubContributions(githubUsername),
+        getGitHubRepos(githubUsername),
+      ])
+    : [[], [], null, []];
 
   // Get current user's likes if authenticated
   let userLikedIds: number[] = [];
@@ -89,6 +105,13 @@ export default async function Home() {
       <HeroSection profile={profile} socialLinks={socialLinks} />
       <AboutSection profile={profile} experiences={experiences} />
       <SkillsSection skills={skills} />
+      <ActivitySection
+        events={ghEvents}
+        languages={ghLanguages}
+        contributions={ghContributions}
+        repos={ghRepos}
+        githubUsername={githubUsername}
+      />
       <ProjectsSection projects={projects} />
       <ContactSection profile={profile} />
       <GuestbookSection
