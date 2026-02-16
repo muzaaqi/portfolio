@@ -169,7 +169,7 @@ function ContributionGraph({ data }: { data: ContributionData }) {
       const cols = weeks.length;
       if (cols === 0) return;
       const size = Math.floor((available - gap * (cols - 1)) / cols);
-      setCellSize(Math.max(2, Math.min(14, size)));
+      setCellSize(Math.max(4, Math.min(14, size)));
     }
     calc();
     const ro = new ResizeObserver(calc);
@@ -209,77 +209,90 @@ function ContributionGraph({ data }: { data: ContributionData }) {
       </div>
 
       <div className="overflow-hidden p-4">
-        {/* Month labels aligned to week columns */}
-        <div className="relative mb-1 overflow-hidden" style={{ paddingLeft: dayLabelWidth }}>
-          <div className="relative h-4">
-            {monthLabels.map((m, i) => (
-              <span
-                key={i}
-                className="text-muted-foreground absolute text-[10px] leading-none"
-                style={{ left: m.weekIndex * colWidth }}
-              >
-                {m.label}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        {/* Grid: day labels + week columns */}
-        <div className="flex overflow-hidden" style={{ gap }}>
-          {/* Day-of-week labels */}
+        <div
+          className="mx-auto"
+          style={{
+            width:
+              dayLabelWidth +
+              weeks.length * cellSize +
+              (weeks.length - 1) * gap,
+          }}
+        >
+          {/* Month labels aligned to week columns */}
           <div
-            className="flex shrink-0 flex-col"
-            style={{ width: dayLabelWidth - gap, gap }}
+            className="relative mb-1 overflow-hidden"
+            style={{ paddingLeft: dayLabelWidth }}
           >
-            {["", "Mon", "", "Wed", "", "Fri", ""].map((d, i) => (
-              <span
-                key={i}
-                className="text-muted-foreground flex items-center text-[9px] leading-none"
-                style={{ height: cellSize }}
-              >
-                {d}
-              </span>
-            ))}
-          </div>
-
-          {/* Week columns */}
-          {weeks.map((week, wi) => (
-            <div key={wi} className="flex flex-col" style={{ gap }}>
-              {week.contributionDays.map((day, di) => (
-                <Tooltip key={di}>
-                  <TooltipTrigger asChild>
-                    <div
-                      className="border border-black/5 transition-transform hover:scale-125 dark:border-white/5"
-                      style={{
-                        width: cellSize,
-                        height: cellSize,
-                        backgroundColor: levelColors[day.contributionLevel],
-                      }}
-                    />
-                  </TooltipTrigger>
-                  <TooltipContent side="top" className="text-xs">
-                    <span className="font-bold">
-                      {day.contributionCount} contributions
-                    </span>{" "}
-                    on {formatDate(day.date)}
-                  </TooltipContent>
-                </Tooltip>
+            <div className="relative h-4">
+              {monthLabels.map((m, i) => (
+                <span
+                  key={i}
+                  className="text-muted-foreground absolute text-[10px] leading-none"
+                  style={{ left: m.weekIndex * colWidth }}
+                >
+                  {m.label}
+                </span>
               ))}
             </div>
-          ))}
-        </div>
+          </div>
 
-        {/* Legend */}
-        <div className="mt-3 flex items-center justify-end gap-1 text-[10px]">
-          <span className="text-muted-foreground mr-1">Less</span>
-          {Object.values(levelColors).map((color, i) => (
+          {/* Grid: day labels + week columns */}
+          <div className="flex overflow-hidden" style={{ gap }}>
+            {/* Day-of-week labels */}
             <div
-              key={i}
-              className="size-[10px] border border-black/5 dark:border-white/5"
-              style={{ backgroundColor: color }}
-            />
-          ))}
-          <span className="text-muted-foreground ml-1">More</span>
+              className="flex shrink-0 flex-col"
+              style={{ width: dayLabelWidth - gap, gap }}
+            >
+              {["", "Mon", "", "Wed", "", "Fri", ""].map((d, i) => (
+                <span
+                  key={i}
+                  className="text-muted-foreground flex items-center text-[9px] leading-none"
+                  style={{ height: cellSize }}
+                >
+                  {d}
+                </span>
+              ))}
+            </div>
+
+            {/* Week columns */}
+            {weeks.map((week, wi) => (
+              <div key={wi} className="flex flex-col" style={{ gap }}>
+                {week.contributionDays.map((day, di) => (
+                  <Tooltip key={di}>
+                    <TooltipTrigger asChild>
+                      <div
+                        className="border border-black/5 transition-transform hover:scale-125 dark:border-white/5"
+                        style={{
+                          width: cellSize,
+                          height: cellSize,
+                          backgroundColor: levelColors[day.contributionLevel],
+                        }}
+                      />
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="text-xs">
+                      <span className="font-bold">
+                        {day.contributionCount} contributions
+                      </span>{" "}
+                      on {formatDate(day.date)}
+                    </TooltipContent>
+                  </Tooltip>
+                ))}
+              </div>
+            ))}
+          </div>
+
+          {/* Legend */}
+          <div className="mt-3 flex items-center justify-end gap-1 text-[10px]">
+            <span className="text-muted-foreground mr-1">Less</span>
+            {Object.values(levelColors).map((color, i) => (
+              <div
+                key={i}
+                className="size-[10px] border border-black/5 dark:border-white/5"
+                style={{ backgroundColor: color }}
+              />
+            ))}
+            <span className="text-muted-foreground ml-1">More</span>
+          </div>
         </div>
       </div>
     </div>
