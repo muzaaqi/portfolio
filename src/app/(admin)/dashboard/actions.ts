@@ -14,6 +14,8 @@ import {
 import { eq } from "drizzle-orm";
 import { revalidateTag } from "next/cache";
 import { auth } from "@/lib/auth";
+import { uploadToR2 } from "@/lib/r2";
+import { generateOgImage } from "@/lib/og";
 
 function invalidateTag(tag: string) {
   revalidateTag(tag, { expire: 0 });
@@ -55,6 +57,32 @@ export async function updateProfile(data: {
   }
 
   invalidateTag("profile");
+
+  // Regenerate static OG image in the background
+  regenerateOgImage(data).catch(console.error);
+
+  return { success: true };
+}
+
+export async function regenerateOgImage(data?: {
+  name?: string;
+  title?: string;
+  shortBio?: string;
+  profileImageUrl?: string;
+}) {
+  const profileData = data ?? (await db.select().from(profile).limit(1))[0];
+  if (!profileData) return { success: false, error: "No profile found" };
+
+  const pngBuffer = await generateOgImage({
+    name: profileData.name ?? "Muhammad Zaki As Shidiqi",
+    title: profileData.title ?? "Fullstack Developer",
+    shortBio:
+      profileData.shortBio ??
+      "Crafting digital experiences with code and creativity.",
+    profileImageUrl: profileData.profileImageUrl,
+  });
+
+  await uploadToR2(pngBuffer, "og-image.png", "image/png");
   return { success: true };
 }
 

@@ -102,7 +102,7 @@ export async function generateMetadata(): Promise<Metadata> {
       description: bio,
       images: [
         {
-          url: "/api/og",
+          url: `${process.env.R2_PUBLIC_URL}/og-image.png`,
           width: 1200,
           height: 630,
           alt: `${name} – Portfolio Preview`,
@@ -118,7 +118,7 @@ export async function generateMetadata(): Promise<Metadata> {
       description: bio,
       images: [
         {
-          url: "/api/og",
+          url: `${process.env.R2_PUBLIC_URL}/og-image.png`,
           width: 1200,
           height: 630,
           alt: `${name} – Portfolio Preview`,
