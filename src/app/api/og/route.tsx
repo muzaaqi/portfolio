@@ -1,54 +1,78 @@
 import { ImageResponse } from "next/og";
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
+import sharp from "sharp";
 import { getProfile } from "@/db/queries";
-
-export const runtime = "edge";
 
 const BASE_URL = "https://www.muzaaqi.my.id";
 
+// Load local font files at module level (bundled at build time)
+const interBoldPromise = readFile(
+  join(process.cwd(), "src/app/api/og/Inter-Bold.ttf"),
+);
+const interRegularPromise = readFile(
+  join(process.cwd(), "src/app/api/og/Inter-Regular.ttf"),
+);
+
+/**
+ * Fetch a profile image and convert it to a PNG data URI.
+ * Satori only supports PNG, JPEG, GIF, and SVG — not WebP.
+ */
+async function getProfileImageDataUri(
+  url: string,
+): Promise<string | undefined> {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return undefined;
+
+    const contentType = res.headers.get("content-type") ?? "";
+    const buffer = Buffer.from(await res.arrayBuffer());
+
+    // Convert WebP (or any format) to PNG for Satori compatibility
+    if (contentType.includes("webp") || url.endsWith(".webp")) {
+      const pngBuffer = await sharp(buffer).png().toBuffer();
+      return `data:image/png;base64,${pngBuffer.toString("base64")}`;
+    }
+
+    // JPEG/PNG/GIF — pass through as data URI
+    const mime = contentType.split(";")[0] || "image/png";
+    return `data:${mime};base64,${buffer.toString("base64")}`;
+  } catch {
+    return undefined;
+  }
+}
+
 export async function GET() {
-  const profile = await getProfile();
+  const [profile, interBold, interRegular] = await Promise.all([
+    getProfile(),
+    interBoldPromise,
+    interRegularPromise,
+  ]);
 
   const name = profile?.name ?? "Muhammad Zaki As Shidiqi";
   const title = profile?.title ?? "Fullstack Developer";
   const bio =
     profile?.shortBio ??
     "Crafting digital experiences with code and creativity.";
-  const profileImageUrl = profile?.profileImageUrl
+
+  // Resolve profile image URL
+  const rawImageUrl = profile?.profileImageUrl
     ? profile.profileImageUrl.startsWith("http")
       ? profile.profileImageUrl
       : `${BASE_URL}${profile.profileImageUrl.startsWith("/") ? "" : "/"}${profile.profileImageUrl}`
-    : `${BASE_URL}/profile.webp`;
+    : null;
 
-  // Fetch Inter font (bold weight for headings)
-  let interBold: ArrayBuffer | undefined;
-  let interRegular: ArrayBuffer | undefined;
-  try {
-    const [boldCss, regularCss] = await Promise.all([
-      fetch(
-        "https://fonts.googleapis.com/css2?family=Inter:wght@700&display=swap",
-      ).then((r) => r.text()),
-      fetch(
-        "https://fonts.googleapis.com/css2?family=Inter:wght@400&display=swap",
-      ).then((r) => r.text()),
-    ]);
-    const boldUrl = boldCss.match(/src: url\((.+?)\) format\('woff2'\)/)?.[1];
-    const regularUrl = regularCss.match(
-      /src: url\((.+?)\) format\('woff2'\)/,
-    )?.[1];
-    if (boldUrl) interBold = await fetch(boldUrl).then((r) => r.arrayBuffer());
-    if (regularUrl)
-      interRegular = await fetch(regularUrl).then((r) => r.arrayBuffer());
-  } catch {
-    // Font fetch failed — fallback to system sans-serif
-  }
+  // Fetch + convert to data URI (handles WebP → PNG)
+  const profileImageSrc = rawImageUrl
+    ? await getProfileImageDataUri(rawImageUrl)
+    : undefined;
 
   // Dark theme colors (from globals.css .dark)
-  const bg = "#38352E"; // --background dark
-  const cardBg = "#423F37"; // --card dark
-  const foreground = "#E2D8C4"; // --foreground dark
-  const mutedFg = "#B0A58E"; // --muted-foreground dark
-  const border = "#5A5547"; // --border dark
-  const primary = "#F5EDD6"; // --primary dark (cream)
+  const bg = "#38352E"; // --background
+  const cardBg = "#423F37"; // --card
+  const mutedFg = "#B0A58E"; // --muted-foreground
+  const border = "#5A5547"; // --border
+  const primary = "#F5EDD6"; // --primary (cream)
 
   return new ImageResponse(
     (
@@ -70,7 +94,7 @@ export async function GET() {
             flexDirection: "column",
             justifyContent: "space-between",
             padding: "56px 60px",
-            width: "720px",
+            width: profileImageSrc ? "720px" : "100%",
             height: "100%",
           }}
         >
@@ -164,58 +188,60 @@ export async function GET() {
           </div>
         </div>
 
-        {/* Right: Profile image area */}
-        <div
-          style={{
-            display: "flex",
-            width: "480px",
-            height: "100%",
-            position: "relative",
-            alignItems: "flex-end",
-            justifyContent: "center",
-          }}
-        >
-          {/* Card background behind image */}
+        {/* Right: Profile image area (only if image loaded) */}
+        {profileImageSrc && (
           <div
             style={{
-              position: "absolute",
-              top: "40px",
-              right: "40px",
-              bottom: "0",
-              left: "20px",
-              backgroundColor: cardBg,
-              border: `2px solid ${border}`,
               display: "flex",
+              width: "480px",
+              height: "100%",
+              position: "relative",
+              alignItems: "flex-end",
+              justifyContent: "center",
             }}
-          />
-          {/* Profile image */}
-          <img
-            src={profileImageUrl}
-            alt=""
-            width={360}
-            height={520}
-            style={{
-              objectFit: "cover",
-              objectPosition: "top center",
-              zIndex: 1,
-              height: "520px",
-              width: "360px",
-            }}
-          />
-          {/* Gradient overlay at bottom of image */}
-          <div
-            style={{
-              position: "absolute",
-              bottom: 0,
-              left: "20px",
-              right: "40px",
-              height: "120px",
-              background: `linear-gradient(to top, ${bg}, transparent)`,
-              zIndex: 2,
-              display: "flex",
-            }}
-          />
-        </div>
+          >
+            {/* Card background behind image */}
+            <div
+              style={{
+                position: "absolute",
+                top: "40px",
+                right: "40px",
+                bottom: "0",
+                left: "20px",
+                backgroundColor: cardBg,
+                border: `2px solid ${border}`,
+                display: "flex",
+              }}
+            />
+            {/* Profile image */}
+            <img
+              src={profileImageSrc}
+              alt=""
+              width={360}
+              height={520}
+              style={{
+                objectFit: "cover",
+                objectPosition: "top center",
+                zIndex: 1,
+                height: "520px",
+                width: "360px",
+              }}
+            />
+            {/* Gradient overlay at bottom of image */}
+            <div
+              style={{
+                position: "absolute",
+                bottom: 0,
+                left: "20px",
+                right: "40px",
+                height: "120px",
+                background: `linear-gradient(to top, ${bg}, transparent)`,
+                zIndex: 2,
+                display: "flex",
+              }}
+            />
+          </div>
+        )}
 
         {/* Top border accent — hard line, no gradient */}
         <div
@@ -235,26 +261,18 @@ export async function GET() {
       width: 1200,
       height: 630,
       fonts: [
-        ...(interBold
-          ? [
-              {
-                name: "Inter" as const,
-                data: interBold,
-                style: "normal" as const,
-                weight: 700 as const,
-              },
-            ]
-          : []),
-        ...(interRegular
-          ? [
-              {
-                name: "Inter" as const,
-                data: interRegular,
-                style: "normal" as const,
-                weight: 400 as const,
-              },
-            ]
-          : []),
+        {
+          name: "Inter",
+          data: interBold,
+          style: "normal" as const,
+          weight: 700 as const,
+        },
+        {
+          name: "Inter",
+          data: interRegular,
+          style: "normal" as const,
+          weight: 400 as const,
+        },
       ],
       headers: {
         "Cache-Control": "public, max-age=86400, s-maxage=604800",
