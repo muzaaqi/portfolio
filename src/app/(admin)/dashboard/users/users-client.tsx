@@ -248,12 +248,13 @@ export function UsersClient({ users }: UsersClientProps) {
                       </DropdownMenuItem>
                     ) : (
                       <DropdownMenuItem
+                        variant="destructive"
                         onClick={() => {
                           setBanTarget(u);
                           setBanDialogOpen(true);
                         }}
                       >
-                        <ShieldOff className="mr-2 size-4 text-orange-500" />
+                        <ShieldOff className="mr-2 size-4" />
                         Ban
                       </DropdownMenuItem>
                     )}
@@ -261,8 +262,8 @@ export function UsersClient({ users }: UsersClientProps) {
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <DropdownMenuItem
+                          variant="destructive"
                           onSelect={(e) => e.preventDefault()}
-                          className="text-destructive focus:text-destructive"
                         >
                           <Trash2 className="mr-2 size-4" />
                           Delete

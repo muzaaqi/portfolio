@@ -239,8 +239,8 @@ function SocialRow({
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <DropdownMenuItem
+                  variant="destructive"
                   onSelect={(e) => e.preventDefault()}
-                  className="text-destructive focus:text-destructive"
                 >
                   <Trash2 className="mr-2 size-4" />
                   Delete
