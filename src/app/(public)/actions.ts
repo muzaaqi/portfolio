@@ -82,7 +82,10 @@ export async function submitContactMessage(formData: FormData) {
 
 // ─── Guestbook ───
 
-export async function postGuestbookMessage(message: string) {
+export async function postGuestbookMessage(
+  message: string,
+  turnstileToken: string,
+) {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -95,6 +98,39 @@ export async function postGuestbookMessage(message: string) {
     return { success: false, error: "Message cannot be empty." };
   }
 
+  // 1. Verify the Turnstile token
+  if (!turnstileToken) {
+    return {
+      success: false,
+      error: "Security check failed. Please try again.",
+    };
+  }
+
+  try {
+    const verifyResponse = await fetch(
+      "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: `secret=${process.env.TURNSTILE_SECRET_KEY}&response=${turnstileToken}`,
+      },
+    );
+
+    const verifyData = await verifyResponse.json();
+
+    if (!verifyData.success) {
+      return {
+        success: false,
+        error: "Bot verification failed. Please try again.",
+      };
+    }
+  } catch {
+    return { success: false, error: "Error verifying security check." };
+  }
+
+  // 2. Insert into the database
   try {
     await db.insert(guestbook).values({
       userId: session.user.id,
@@ -131,7 +167,11 @@ export async function deleteGuestbookMessage(id: number) {
   }
 }
 
-export async function postGuestbookReply(parentId: number, message: string) {
+export async function postGuestbookReply(
+  parentId: number,
+  message: string,
+  turnstileToken: string,
+) {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -144,6 +184,39 @@ export async function postGuestbookReply(parentId: number, message: string) {
     return { success: false, error: "Reply cannot be empty." };
   }
 
+  // 1. Verify the Turnstile token
+  if (!turnstileToken) {
+    return {
+      success: false,
+      error: "Security check failed. Please try again.",
+    };
+  }
+
+  try {
+    const verifyResponse = await fetch(
+      "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: `secret=${process.env.TURNSTILE_SECRET_KEY}&response=${turnstileToken}`,
+      },
+    );
+
+    const verifyData = await verifyResponse.json();
+
+    if (!verifyData.success) {
+      return {
+        success: false,
+        error: "Bot verification failed. Please try again.",
+      };
+    }
+  } catch {
+    return { success: false, error: "Error verifying security check." };
+  }
+
+  // 2. Insert into the database
   try {
     await db.insert(guestbook).values({
       parentId,

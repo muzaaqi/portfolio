@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -25,6 +25,7 @@ import {
   toggleGuestbookLike,
   fetchGuestbookReplies,
 } from "@/app/(public)/actions";
+import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile";
 import type { GuestbookEntryWithCounts, GuestbookReply } from "@/db/queries";
 
 type SortOption = "top" | "replies" | "latest";
@@ -46,8 +47,15 @@ export function GuestbookSection({
   const [likedIds, setLikedIds] = useState<Set<number>>(
     () => new Set(initialLikedIds),
   );
+  
+  // States for main message
   const [message, setMessage] = useState("");
   const [isPending, setIsPending] = useState(false);
+  
+  // Turnstile state for main message
+  const turnstileRef = useRef<TurnstileInstance>(null);
+  const [turnstileToken, setTurnstileToken] = useState<string>("");
+
   const [sortBy, setSortBy] = useState<SortOption>("top");
   const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE);
 
@@ -72,10 +80,11 @@ export function GuestbookSection({
   const hasMore = visibleCount < sortedEntries.length;
 
   async function handleSubmit() {
-    if (!message.trim()) return;
+    if (!message.trim() || !turnstileToken) return;
     setIsPending(true);
     try {
-      const result = await postGuestbookMessage(message);
+      // NOTE: You must update `postGuestbookMessage` to accept the token as the second argument
+      const result = await postGuestbookMessage(message, turnstileToken);
       if (result.success) {
         toast.success("Message posted!");
         setMessage("");
@@ -86,6 +95,9 @@ export function GuestbookSection({
       toast.error("Something went wrong.");
     } finally {
       setIsPending(false);
+      // Reset Turnstile for the next submission
+      turnstileRef.current?.reset();
+      setTurnstileToken("");
     }
   }
 
@@ -217,9 +229,18 @@ export function GuestbookSection({
               placeholder="Leave a message..."
               rows={3}
             />
+
+            {/* Main Turnstile Component */}
+            <Turnstile
+              ref={turnstileRef}
+              siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
+              options={{ size: "invisible" }}
+              onSuccess={(token) => setTurnstileToken(token)}
+            />
+
             <Button
               onClick={handleSubmit}
-              disabled={isPending || !message.trim()}
+              disabled={isPending || !message.trim() || !turnstileToken}
             >
               <MessageSquare className="mr-2 size-4" />
               {isPending ? "Posting..." : "Post Message"}
@@ -362,8 +383,15 @@ function CommentCard({
   session,
 }: CommentCardProps) {
   const [showReplyForm, setShowReplyForm] = useState(false);
+  
+  // States for replying
   const [replyText, setReplyText] = useState("");
   const [isReplying, setIsReplying] = useState(false);
+  
+  // Turnstile state for replies
+  const turnstileRef = useRef<TurnstileInstance>(null);
+  const [turnstileToken, setTurnstileToken] = useState<string>("");
+
   const [showReplies, setShowReplies] = useState(false);
   const [replies, setReplies] = useState<GuestbookReply[]>([]);
   const [loadingReplies, setLoadingReplies] = useState(false);
@@ -384,10 +412,11 @@ function CommentCard({
   }, [entry.id, loadingReplies]);
 
   async function handleReply() {
-    if (!replyText.trim()) return;
+    if (!replyText.trim() || !turnstileToken) return;
     setIsReplying(true);
     try {
-      const result = await postGuestbookReply(entry.id, replyText);
+      // NOTE: You must update `postGuestbookReply` to accept the token as the third argument
+      const result = await postGuestbookReply(entry.id, replyText, turnstileToken);
       if (result.success) {
         toast.success("Reply posted!");
         setReplyText("");
@@ -405,6 +434,9 @@ function CommentCard({
       toast.error("Something went wrong.");
     } finally {
       setIsReplying(false);
+      // Reset Turnstile for the next reply
+      turnstileRef.current?.reset();
+      setTurnstileToken("");
     }
   }
 
@@ -508,11 +540,20 @@ function CommentCard({
                 rows={2}
                 className="text-sm"
               />
+
+              {/* Reply Turnstile Component */}
+              <Turnstile
+                ref={turnstileRef}
+                siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
+                options={{ size: "invisible" }}
+                onSuccess={(token) => setTurnstileToken(token)}
+              />
+
               <div className="flex gap-2">
                 <Button
                   size="sm"
                   onClick={handleReply}
-                  disabled={isReplying || !replyText.trim()}
+                  disabled={isReplying || !replyText.trim() || !turnstileToken}
                 >
                   {isReplying ? "Posting..." : "Reply"}
                 </Button>
