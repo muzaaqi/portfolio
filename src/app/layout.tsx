@@ -221,8 +221,6 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {/* Preload hero profile image for LCP */}
-        <link rel="preload" as="image" href={profileImage} />
         <Script
           defer
           src="https://static.cloudflareinsights.com/beacon.min.js"
@@ -233,8 +231,7 @@ export default async function RootLayout({
       </head>
       <GoogleTagManager gtmId="GTM-TS65PZH9" />
       <body
-        className={`bg-background min-h-screen font-sans antialiased ${inter.variable} ${jetBrainsMono.variable} ${anton.variable}`}
-        suppressHydrationWarning
+        className={`${inter.variable} ${jetBrainsMono.variable} ${anton.variable} antialiased`}
       >
         <noscript>
           <iframe
