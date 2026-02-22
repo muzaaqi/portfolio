@@ -6,6 +6,7 @@ import { ThemeProvider } from "next-themes";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import { getProfile, getSocialLinks } from "@/db/queries";
+import { GoogleTagManager } from "@next/third-parties/google";
 
 const BASE_URL = "https://www.muzaaqi.my.id";
 
@@ -220,32 +221,21 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <link
-          rel="preconnect"
-          href="https://www.googletagmanager.com"
-          crossOrigin="anonymous"
-        />
-        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
-        <Script id="gtm" strategy="afterInteractive">
-          {`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-          new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-          j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-          'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-          })(window,document,'script','dataLayer', '${process.env.NEXT_PUBLIC_GTM_ID}');`}
-        </Script>
-
         <Script
           defer
           src="https://static.cloudflareinsights.com/beacon.min.js"
-          data-cf-beacon={JSON.stringify({token: process.env.NEXT_PUBLIC_CLOUDFLARE_INSIGHTS_TOKEN})}
+          data-cf-beacon={JSON.stringify({
+            token: process.env.NEXT_PUBLIC_CLOUDFLARE_INSIGHTS_TOKEN,
+          })}
         />
       </head>
+      <GoogleTagManager gtmId="GTM-TS65PZH9" />
       <body
         className={`${inter.variable} ${jetBrainsMono.variable} ${anton.variable} antialiased`}
       >
         <noscript>
           <iframe
-            src={`https://www.googletagmanager.com/ns.html?id=${process.env.NEXT_PUBLIC_GTM_ID}`}
+            src={`https://www.googletagmanager.com/ns.html?id=GTM-TS65PZH9`}
             height="0"
             width="0"
             style={{ display: "none", visibility: "hidden" }}
