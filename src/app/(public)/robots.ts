@@ -1,6 +1,6 @@
 import { MetadataRoute } from "next";
 
-const BASE_URL = "https://www.muzaaqi.my.id";
+const BASE_URL = process.env.BASE_URL || "http://localhost:3000";
 
 export default function robots(): MetadataRoute.Robots {
   return {

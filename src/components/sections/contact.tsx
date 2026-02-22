@@ -9,6 +9,7 @@ import { Send, Mail, MapPin, FileDown } from "lucide-react";
 import { motion } from "motion/react";
 import { toast } from "sonner";
 import { submitContactMessage } from "@/app/(public)/actions";
+import { Turnstile } from "@marsidev/react-turnstile";
 import type { Profile } from "@/db/schema";
 
 interface ContactSectionProps {
@@ -93,6 +94,12 @@ export function ContactSection({ profile }: ContactSectionProps) {
                 required
               />
             </div>
+
+            <Turnstile
+              siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
+              options={{ size: "invisible" }}
+            />
+
             <Button type="submit" disabled={isPending}>
               <Send className="mr-2 size-4" />
               {isPending ? "Sending..." : "Send Message"}

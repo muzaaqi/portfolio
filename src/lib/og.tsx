@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import sharp from "sharp";
 
-const BASE_URL = "https://www.muzaaqi.my.id";
+const BASE_URL = process.env.BASE_URL || "http://localhost:3000";
 
 // Load local font files once
 const interBoldPromise = readFile(

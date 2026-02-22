@@ -23,6 +23,39 @@ const contactSchema = z.object({
 });
 
 export async function submitContactMessage(formData: FormData) {
+  const turnstileToken = formData.get("cf-turnstile-response");
+
+  if (!turnstileToken) {
+    return {
+      success: false,
+      error: "Security check failed. Please try again.",
+    };
+  }
+
+  try {
+    const verifyResponse = await fetch(
+      "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: `secret=${process.env.TURNSTILE_SECRET_KEY}&response=${turnstileToken}`,
+      },
+    );
+
+    const verifyData = await verifyResponse.json();
+
+    if (!verifyData.success) {
+      return {
+        success: false,
+        error: "Bot verification failed. Please try again.",
+      };
+    }
+  } catch {
+    return { success: false, error: "Error verifying security check." };
+  }
+
   const parsed = contactSchema.safeParse({
     name: formData.get("name"),
     email: formData.get("email"),
