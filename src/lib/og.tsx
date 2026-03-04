@@ -185,7 +185,7 @@ export async function generateOgImage(data: OgImageData): Promise<Buffer> {
                 display: "flex",
               }}
             >
-              www.muzaaqi.my.id
+              {new URL(BASE_URL).hostname}
             </div>
           </div>
         </div>
