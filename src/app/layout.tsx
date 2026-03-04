@@ -41,7 +41,7 @@ export async function generateMetadata(): Promise<Metadata> {
     metadataBase: new URL(BASE_URL),
 
     title: {
-      default: `${name} – ${title} Portfolio`,
+      default: `${name} – ${title}`,
       template: `%s | ${name}`,
     },
     description: bio,
@@ -99,7 +99,7 @@ export async function generateMetadata(): Promise<Metadata> {
       type: "website",
       url: BASE_URL,
       siteName: name,
-      title: `${name} – ${title} Portfolio`,
+      title: `${name} – ${title}`,
       description: bio,
       images: [
         {
@@ -115,7 +115,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
     twitter: {
       card: "summary_large_image",
-      title: `${name} – ${title} Portfolio`,
+      title: `${name} – ${title}`,
       description: bio,
       images: [
         {
@@ -195,7 +195,7 @@ export default async function RootLayout({
   const websiteSchema = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    name: `${name} – ${title} Portfolio`,
+    name: `${name} – ${title}`,
     url: BASE_URL,
     description: `Portfolio of ${name} – ${bio}`,
     author: {
