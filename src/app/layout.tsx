@@ -8,7 +8,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { getProfile, getSocialLinks } from "@/db/queries";
 import { GoogleTagManager } from "@next/third-parties/google";
 
-const BASE_URL = process.env.BASE_URL || "http://localhost:3000";
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
 const inter = Inter({
   weight: "400",
