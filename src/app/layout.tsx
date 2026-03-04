@@ -163,7 +163,6 @@ export default async function RootLayout({
     ? `${BASE_URL}${profile.profileImageUrl.startsWith("/") ? "" : "/"}${profile.profileImageUrl}`
     : `${BASE_URL}/profile.webp`;
 
-  // Build sameAs from social links DB, falling back to hardcoded
   const sameAs =
     socialLinksData.length > 0
       ? socialLinksData.map((link) => link.url)
@@ -178,7 +177,7 @@ export default async function RootLayout({
     "@context": "https://schema.org",
     "@type": "Person",
     name,
-    alternateName: "Muzaaqi",
+    alternateName: "Muhammad Zaki As Shidiqi",
     url: BASE_URL,
     image: profileImage,
     jobTitle: title,
@@ -196,7 +195,7 @@ export default async function RootLayout({
   const websiteSchema = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    name: `${name} Portfolio`,
+    name: `${name} – ${title} Portfolio`,
     url: BASE_URL,
     description: `Portfolio of ${name} – ${bio}`,
     author: {
@@ -214,8 +213,8 @@ export default async function RootLayout({
       url: BASE_URL,
     },
     dateModified: profile?.updatedAt
-      ? new Date(profile.updatedAt).toISOString().split("T")[0]
-      : new Date().toISOString().split("T")[0],
+      ? new Date(profile.updatedAt).toISOString()
+      : new Date().toISOString(),
   };
 
   return (
