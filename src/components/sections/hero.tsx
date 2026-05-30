@@ -1,16 +1,13 @@
 "use client";
 
-import { useRef, useCallback, useMemo } from "react";
+import { useRef, useCallback, useMemo, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Github, Instagram, Linkedin, Youtube, Briefcase } from "lucide-react";
-import gsap from "gsap";
-import { useGSAP } from "@gsap/react";
+import { useAnimate, stagger } from "motion/react";
 import { useLenis } from "lenis/react";
 import { Button } from "@/components/ui/button";
 import type { Profile, SocialLink } from "@/db/schema";
-
-gsap.registerPlugin(useGSAP);
 
 interface HeroSectionProps {
   profile: Profile | null;
@@ -18,7 +15,7 @@ interface HeroSectionProps {
 }
 
 export function HeroSection({ profile, socialLinks }: HeroSectionProps) {
-  const containerRef = useRef<HTMLElement>(null);
+  const [containerRef, animate] = useAnimate();
   const lenisRef = useRef<InstanceType<typeof import("lenis").default> | null>(
     null,
   );
@@ -31,35 +28,30 @@ export function HeroSection({ profile, socialLinks }: HeroSectionProps) {
     lenisRef.current?.scrollTo("#contact", { lerp: 0.1, duration: 1.2 });
   }, []);
 
-  useGSAP(
-    () => {
-      const prefersReducedMotion = window.matchMedia(
-        "(prefers-reduced-motion: reduce)",
-      ).matches;
-      if (prefersReducedMotion) return;
+  useEffect(() => {
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    if (prefersReducedMotion) return;
 
-      const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
+    animate(
+      ".hero-text",
+      { y: [80, 0], opacity: [0, 1] },
+      { delay: stagger(0.08), duration: 0.9, ease: [0.215, 0.61, 0.355, 1] }
+    );
 
-      tl.fromTo(
-        ".hero-text",
-        { y: 80, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.9, stagger: 0.08 },
-      )
-        .fromTo(
-          ".hero-image",
-          { scale: 0.85, opacity: 0 },
-          { scale: 1, opacity: 1, duration: 1 },
-          "-=0.6",
-        )
-        .fromTo(
-          ".hero-bottom",
-          { y: 20, opacity: 0 },
-          { y: 0, opacity: 1, duration: 0.5, stagger: 0.06 },
-          "-=0.3",
-        );
-    },
-    { scope: containerRef },
-  );
+    animate(
+      ".hero-image",
+      { scale: [0.85, 1], opacity: [0, 1] },
+      { delay: 0.6, duration: 1, ease: [0.215, 0.61, 0.355, 1] }
+    );
+
+    animate(
+      ".hero-bottom",
+      { y: [20, 0], opacity: [0, 1] },
+      { delay: 1.1, duration: 0.5, ease: [0.215, 0.61, 0.355, 1] }
+    );
+  }, [animate]);
 
   // ── Customizable content (DB → fallback) ──
   const name = profile?.name ?? "Muhammad Zaki As Shidiqi";

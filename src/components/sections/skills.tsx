@@ -1,10 +1,8 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useGSAP } from "@gsap/react";
+import { motion, useReducedMotion, type Variants } from "motion/react";
 import {
   Tooltip,
   TooltipContent,
@@ -12,8 +10,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import type { Skill } from "@/db/schema";
-
-gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 interface SkillsSectionProps {
   skills: Skill[];
@@ -87,9 +83,7 @@ function SkillCard({ skill }: { skill: Skill }) {
 }
 
 export function SkillsSection({ skills }: SkillsSectionProps) {
-  const sectionRef = useRef<HTMLElement>(null);
-  const headingRef = useRef<HTMLDivElement>(null);
-  const groupRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const shouldReduceMotion = useReducedMotion();
 
   // Group skills by category
   const grouped = categoryOrder
@@ -100,89 +94,68 @@ export function SkillsSection({ skills }: SkillsSectionProps) {
     }))
     .filter((g) => g.items.length > 0);
 
-  useGSAP(
-    () => {
-      const prefersReducedMotion = window.matchMedia(
-        "(prefers-reduced-motion: reduce)",
-      ).matches;
-      if (prefersReducedMotion) return;
-
-      // Heading animation
-      if (headingRef.current) {
-        gsap.fromTo(
-          headingRef.current,
-          { y: 30, opacity: 0 },
-          {
-            y: 0,
-            opacity: 1,
-            duration: 0.6,
-            clearProps: "all",
-            scrollTrigger: {
-              trigger: headingRef.current,
-              start: "top 85%",
-              toggleActions: "play none none none",
-            },
-          },
-        );
-      }
-
-      // Stagger each group with slide-up animation
-      groupRefs.current.forEach((groupEl) => {
-        if (!groupEl) return;
-        const cards = groupEl.querySelectorAll("[data-skill-card]");
-        gsap.fromTo(
-          cards,
-          { y: 40, opacity: 0 },
-          {
-            y: 0,
-            opacity: 1,
-            duration: 0.5,
-            stagger: 0.06,
-            ease: "power3.out",
-            clearProps: "all",
-            scrollTrigger: {
-              trigger: groupEl,
-              start: "top 85%",
-              toggleActions: "play none none none",
-            },
-          },
-        );
-      });
+  const containerVariants: Variants = {
+    hidden: {},
+    visible: {
+      transition: {
+        staggerChildren: shouldReduceMotion ? 0 : 0.06,
+      },
     },
-    { scope: sectionRef, dependencies: [skills] },
-  );
+  };
+
+  const cardVariants: Variants = {
+    hidden: {
+      y: shouldReduceMotion ? 0 : 40,
+      opacity: 0,
+    },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: {
+        duration: 0.5,
+        ease: "easeOut",
+      },
+    },
+  };
 
   return (
     <TooltipProvider>
       <section
-        ref={sectionRef}
         id="skills"
         data-section="skills"
         className="container mx-auto min-h-svh px-4 py-20 md:pr-20"
       >
-        <div ref={headingRef}>
+        <motion.div
+          initial={{ y: shouldReduceMotion ? 0 : 30, opacity: 0 }}
+          whileInView={{ y: 0, opacity: 1 }}
+          viewport={{ once: true, margin: "-15% 0px" }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+        >
           <h2 className="mb-2 text-4xl font-bold">Skills</h2>
           <div className="bg-primary mb-12 h-1 w-16" />
-        </div>
+        </motion.div>
 
         {grouped.length > 0 ? (
           <div className="space-y-10">
-            {grouped.map((group, i) => (
-              <div
+            {grouped.map((group) => (
+              <motion.div
                 key={group.category}
-                ref={(el) => {
-                  groupRefs.current[i] = el;
-                }}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: "-15% 0px" }}
+                variants={containerVariants}
               >
                 <h3 className="text-foreground/80 mb-4 text-xl font-semibold">
                   {group.label}
                 </h3>
                 <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6">
                   {group.items.map((skill) => (
-                    <SkillCard key={skill.id} skill={skill} />
+                    <motion.div key={skill.id} variants={cardVariants}>
+                      <SkillCard skill={skill} />
+                    </motion.div>
                   ))}
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         ) : (
