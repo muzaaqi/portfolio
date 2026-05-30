@@ -68,6 +68,7 @@ import {
 } from "../actions";
 import { ImageUpload } from "@/components/admin/image-upload";
 import type { Project } from "@/db/schema";
+import { Spinner } from "@/components/ui/spinner";
 import { useRouter } from "next/navigation";
 
 interface ProjectsClientProps {
@@ -663,6 +664,7 @@ function ProjectForm({
           </Button>
         </DialogClose>
         <Button type="submit" disabled={isPending} className="flex-1">
+          {isPending && <Spinner className="mr-2 size-4" />}
           {isPending
             ? "Saving..."
             : project

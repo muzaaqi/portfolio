@@ -16,6 +16,7 @@ import { signIn } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Github } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -126,6 +127,7 @@ export default function LoginPage() {
               />
             </div>
             <Button type="submit" className="w-full" disabled={isPending}>
+              {isPending && <Spinner className="mr-2 h-4 w-4" />}
               {isPending ? "Signing in..." : "Sign in"}
             </Button>
           </form>

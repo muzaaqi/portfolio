@@ -63,6 +63,7 @@ import {
 import type { Experience } from "@/db/schema";
 import { useRouter } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Spinner } from "@/components/ui/spinner";
 
 interface ExperienceClientProps {
   experiences: Experience[];
@@ -433,6 +434,7 @@ function ExperienceForm({
           </Button>
         </DialogClose>
         <Button type="submit" disabled={isPending} className="flex-1">
+          {isPending && <Spinner className="mr-2 size-4" />}
           {isPending ? "Saving..." : experience ? "Update" : "Create"}
         </Button>
       </div>

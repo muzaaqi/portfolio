@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { submitContactMessage } from "@/app/(public)/actions";
 import { Turnstile } from "@marsidev/react-turnstile";
 import type { Profile } from "@/db/schema";
+import { Spinner } from "@/components/ui/spinner";
 
 interface ContactSectionProps {
   profile: Profile | null;
@@ -101,7 +102,11 @@ export function ContactSection({ profile }: ContactSectionProps) {
             />
 
             <Button type="submit" disabled={isPending}>
-              <Send className="mr-2 size-4" />
+              {isPending ? (
+                <Spinner className="mr-2 size-4" />
+              ) : (
+                <Send className="mr-2 size-4" />
+              )}
               {isPending ? "Sending..." : "Send Message"}
             </Button>
           </form>

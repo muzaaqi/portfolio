@@ -42,6 +42,7 @@ import {
 import { DeviconIconPicker } from "@/components/admin/devicon-icon-picker";
 import type { Skill } from "@/db/schema";
 import { useRouter } from "next/navigation";
+import { Spinner } from "@/components/ui/spinner";
 
 import {
   DndContext,
@@ -489,6 +490,7 @@ function SkillForm({
           </DialogClose>
         )}
         <Button type="submit" disabled={isPending}>
+          {isPending && <Spinner className="mr-2 size-4" />}
           {isPending ? "Saving..." : skill ? "Update" : "Create"}
         </Button>
       </DialogFooter>

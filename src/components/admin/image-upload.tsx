@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Upload, X, ImageIcon } from "lucide-react";
 import Image from "next/image";
+import { Spinner } from "@/components/ui/spinner";
 
 interface ImageUploadProps {
   value: string;
@@ -85,7 +86,11 @@ export function ImageUpload({ value, onChange }: ImageUploadProps) {
           onClick={() => inputRef.current?.click()}
           disabled={isUploading}
         >
-          <Upload className="size-4" />
+          {isUploading ? (
+            <Spinner className="size-4" />
+          ) : (
+            <Upload className="size-4" />
+          )}
         </Button>
       </div>
       <input

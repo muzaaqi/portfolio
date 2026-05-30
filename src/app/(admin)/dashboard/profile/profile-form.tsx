@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { updateProfile } from "../actions";
 import type { Profile } from "@/db/schema";
 import { ImageUpload } from "@/components/admin/image-upload";
+import { Spinner } from "@/components/ui/spinner";
 
 interface ProfileFormProps {
   profile: Profile | null;
@@ -246,6 +247,7 @@ export function ProfileForm({ profile }: ProfileFormProps) {
                   </Button>
                 )}
                 <Button type="submit" disabled={isPending}>
+                  {isPending && <Spinner className="mr-2 size-4" />}
                   {isPending ? "Saving..." : "Save Profile"}
                 </Button>
               </div>

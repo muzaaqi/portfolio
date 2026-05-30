@@ -27,6 +27,7 @@ import {
 } from "@/app/(public)/actions";
 import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile";
 import type { GuestbookEntryWithCounts, GuestbookReply } from "@/db/queries";
+import { Spinner } from "@/components/ui/spinner";
 
 type SortOption = "top" | "replies" | "latest";
 
@@ -242,7 +243,11 @@ export function GuestbookSection({
               onClick={handleSubmit}
               disabled={isPending || !message.trim() || !turnstileToken}
             >
-              <MessageSquare className="mr-2 size-4" />
+              {isPending ? (
+                <Spinner className="mr-2 size-4" />
+              ) : (
+                <MessageSquare className="mr-2 size-4" />
+              )}
               {isPending ? "Posting..." : "Post Message"}
             </Button>
           </div>
@@ -555,6 +560,7 @@ function CommentCard({
                   onClick={handleReply}
                   disabled={isReplying || !replyText.trim() || !turnstileToken}
                 >
+                  {isReplying && <Spinner className="mr-2 size-3" />}
                   {isReplying ? "Posting..." : "Reply"}
                 </Button>
                 <Button
@@ -575,7 +581,8 @@ function CommentCard({
           {showReplies && (
             <div className="border-border mt-3 space-y-4 border-l-2 pl-4">
               {loadingReplies ? (
-                <p className="text-muted-foreground text-xs">
+                <p className="text-muted-foreground flex items-center gap-2 text-xs">
+                  <Spinner className="size-3" />
                   Loading replies...
                 </p>
               ) : (

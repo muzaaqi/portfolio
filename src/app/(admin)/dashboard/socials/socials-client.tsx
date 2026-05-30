@@ -57,6 +57,7 @@ import {
 import { LucideIconPicker } from "@/components/admin/lucide-icon-picker";
 import type { SocialLink } from "@/db/schema";
 import { useRouter } from "next/navigation";
+import { Spinner } from "@/components/ui/spinner";
 
 // Convert kebab-case slug to PascalCase for lookup
 function toPascal(slug: string) {
@@ -338,6 +339,7 @@ function SocialForm({
           </Button>
         </DialogClose>
         <Button type="submit" disabled={isPending} className="flex-1">
+          {isPending && <Spinner className="mr-2 size-4" />}
           {isPending ? "Saving..." : link ? "Update" : "Create"}
         </Button>
       </div>
