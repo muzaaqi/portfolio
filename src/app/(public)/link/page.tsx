@@ -9,7 +9,9 @@ import {
   Mail, 
   Globe, 
   Link as LinkIcon,
-  ExternalLink
+  ExternalLink,
+  icons as allLucideIcons,
+  type LucideIcon
 } from "lucide-react";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
@@ -86,24 +88,34 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
+function toPascal(slug: string) {
+  return slug
+    .split("-")
+    .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+    .join("");
+}
+
 const getIcon = (iconName: string | null) => {
-  switch (iconName?.toLowerCase()) {
-    case "github":
-      return <Github className="w-5 h-5" />;
-    case "twitter":
+  if (!iconName) return <LinkIcon className="w-5 h-5" />;
+
+  // Hardcoded fallbacks for specific platform names or aliases
+  switch (iconName.toLowerCase()) {
     case "x":
       return <Twitter className="w-5 h-5" />;
-    case "linkedin":
-      return <Linkedin className="w-5 h-5" />;
-    case "mail":
+    case "website":
+      return <Globe className="w-5 h-5" />;
     case "email":
       return <Mail className="w-5 h-5" />;
-    case "website":
-    case "globe":
-      return <Globe className="w-5 h-5" />;
-    default:
-      return <LinkIcon className="w-5 h-5" />;
   }
+
+  // Dynamic lookup
+  const IconComp = allLucideIcons[
+    toPascal(iconName) as keyof typeof allLucideIcons
+  ] as LucideIcon | undefined;
+  
+  if (IconComp) return <IconComp className="w-5 h-5" />;
+  
+  return <LinkIcon className="w-5 h-5" />;
 };
 
 export default async function LinktreePage() {
