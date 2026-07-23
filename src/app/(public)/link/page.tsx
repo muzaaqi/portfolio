@@ -12,6 +12,68 @@ import {
   ExternalLink
 } from "lucide-react";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
+
+async function getOgImage(url: string): Promise<string | null> {
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3000);
+    const res = await fetch(url, { 
+      next: { revalidate: 86400 },
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+    if (!res.ok) return null;
+    const html = await res.text();
+    const match = html.match(/<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["'][^>]*>/i) 
+               || html.match(/<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:image["'][^>]*>/i);
+    return match ? match[1] : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function LinkCardFallback({ link }: { link: any }) {
+  return (
+    <div className="group flex items-center p-4 bg-card border border-border rounded-xl opacity-70">
+      <div className="flex-shrink-0 mr-4 text-muted-foreground">
+        {getIcon(link.icon)}
+      </div>
+      <div className="flex-grow text-center font-medium mr-9">
+        {link.title}
+      </div>
+    </div>
+  );
+}
+
+async function LinkCard({ link }: { link: any }) {
+  const banner = await getOgImage(link.url);
+  return (
+    <Link
+      href={link.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group flex flex-col p-4 bg-card hover:bg-accent/50 border border-border rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-md overflow-hidden relative"
+    >
+      {banner && (
+        <div className="w-full h-32 mb-4 rounded-md overflow-hidden relative border border-border/50">
+          <Image src={banner} alt={`${link.title} banner`} fill className="object-cover" unoptimized />
+        </div>
+      )}
+      <div className="flex items-center w-full">
+        <div className="flex-shrink-0 mr-4 text-muted-foreground group-hover:text-primary transition-colors">
+          {getIcon(link.icon)}
+        </div>
+        <div className="flex-grow text-center font-medium mr-9">
+          {link.title}
+        </div>
+        <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+          <ExternalLink className="w-4 h-4 text-muted-foreground" />
+        </div>
+      </div>
+    </Link>
+  );
+}
 
 export async function generateMetadata(): Promise<Metadata> {
   const profile = await getProfile();
@@ -96,23 +158,9 @@ export default async function LinktreePage() {
         <div className="w-full space-y-3 pt-4">
           {links.length > 0 ? (
             links.map((link) => (
-              <Link
-                key={link.id}
-                href={link.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group flex items-center p-4 bg-card hover:bg-accent/50 border border-border rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-md"
-              >
-                <div className="flex-shrink-0 mr-4 text-muted-foreground group-hover:text-primary transition-colors">
-                  {getIcon(link.icon)}
-                </div>
-                <div className="flex-grow text-center font-medium mr-9">
-                  {link.title}
-                </div>
-                <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <ExternalLink className="w-4 h-4 text-muted-foreground" />
-                </div>
-              </Link>
+              <Suspense key={link.id} fallback={<LinkCardFallback link={link} />}>
+                <LinkCard link={link} />
+              </Suspense>
             ))
           ) : (
             <div className="text-center p-6 border border-dashed rounded-xl text-muted-foreground text-sm">
