@@ -47,7 +47,7 @@ function LinkCardFallback({ link }: { link: any }) {
 }
 
 async function LinkCard({ link }: { link: any }) {
-  const banner = await getOgImage(link.url);
+  const banner = link.showBanner ? await getOgImage(link.url) : null;
   return (
     <Link
       href={link.url}

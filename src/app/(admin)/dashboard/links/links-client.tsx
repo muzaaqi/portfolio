@@ -58,6 +58,8 @@ import { LucideIconPicker } from "@/components/admin/lucide-icon-picker";
 import type { Link } from "@/db/schema";
 import { useRouter } from "next/navigation";
 import { Spinner } from "@/components/ui/spinner";
+import { Switch } from "@/components/ui/switch";
+import { useEffect } from "react";
 
 // Convert kebab-case slug to PascalCase for lookup
 function toPascal(slug: string) {
@@ -213,6 +215,13 @@ function LinkRow({
           <LucideIconPreview name={link.icon} />
           <span className="font-medium">{link.title}</span>
         </div>
+        {link.showBanner && (
+          <div className="mt-2 flex items-center gap-2">
+            <span className="inline-block w-2 h-2 rounded-full bg-green-500"></span> 
+            <span className="text-xs text-muted-foreground">Banner Active</span>
+            <BannerPreview url={link.url} />
+          </div>
+        )}
       </TableCell>
       <TableCell className="max-w-xs truncate">
         <a
@@ -272,6 +281,27 @@ function LinkRow({
   );
 }
 
+function BannerPreview({ url }: { url: string }) {
+  const [imgUrl, setImgUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    import("../actions").then((m) => {
+      m.fetchOgImage(url).then((res) => {
+        if (res) setImgUrl(res);
+      });
+    });
+  }, [url]);
+
+  if (!imgUrl) return null;
+
+  return (
+    <div className="h-8 w-16 relative rounded overflow-hidden border border-border">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={imgUrl} alt="Banner Preview" className="object-cover w-full h-full" />
+    </div>
+  );
+}
+
 function LinkForm({
   link,
   onSuccess,
@@ -284,6 +314,7 @@ function LinkForm({
     title: link?.title ?? "",
     url: link?.url ?? "",
     icon: link?.icon ?? "",
+    showBanner: link?.showBanner ?? true,
   });
 
   async function handleSubmit(e: React.FormEvent) {
@@ -330,6 +361,18 @@ function LinkForm({
         <LucideIconPicker
           value={form.icon}
           onChange={(slug) => setForm((f) => ({ ...f, icon: slug }))}
+        />
+      </div>
+      <div className="flex items-center justify-between rounded-lg border p-4">
+        <div className="space-y-0.5">
+          <Label className="text-base">Show Banner</Label>
+          <p className="text-sm text-muted-foreground">
+            Automatically fetch and display the Open Graph image for this link as a banner.
+          </p>
+        </div>
+        <Switch
+          checked={form.showBanner}
+          onCheckedChange={(checked) => setForm((f) => ({ ...f, showBanner: checked }))}
         />
       </div>
       <div className="flex gap-3">

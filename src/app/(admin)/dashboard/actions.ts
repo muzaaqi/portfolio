@@ -131,6 +131,7 @@ export async function createLink(data: {
   title: string;
   url: string;
   icon?: string;
+  showBanner?: boolean;
   sortOrder?: number;
 }) {
   await requireAdmin();
@@ -145,6 +146,7 @@ export async function updateLink(
     title?: string;
     url?: string;
     icon?: string;
+    showBanner?: boolean;
     sortOrder?: number;
     isVisible?: boolean;
   },
@@ -160,6 +162,25 @@ export async function deleteLink(id: number) {
   await db.delete(links).where(eq(links.id, id));
   invalidateTag("links");
   return { success: true };
+}
+
+export async function fetchOgImage(url: string): Promise<string | null> {
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3000);
+    const res = await fetch(url, { 
+      next: { revalidate: 86400 },
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+    if (!res.ok) return null;
+    const html = await res.text();
+    const match = html.match(/<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["'][^>]*>/i) 
+               || html.match(/<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:image["'][^>]*>/i);
+    return match ? match[1] : null;
+  } catch (e) {
+    return null;
+  }
 }
 
 // ─── Projects ───
