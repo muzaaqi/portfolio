@@ -11,6 +11,7 @@ import {
   guestbookLikes,
   contactMessages,
   user,
+  links,
 } from "./schema";
 
 // ─── Profile ───
@@ -36,6 +37,20 @@ export const getSocialLinks = unstable_cache(
   },
   ["social-links"],
   { revalidate: 3600, tags: ["socials"] },
+);
+
+// ─── Links ───
+
+export const getLinks = unstable_cache(
+  async () => {
+    return db
+      .select()
+      .from(links)
+      .where(eq(links.isVisible, true))
+      .orderBy(asc(links.sortOrder));
+  },
+  ["links"],
+  { revalidate: 3600, tags: ["links"] },
 );
 
 // ─── Projects ───

@@ -238,6 +238,21 @@ export const contactMessages = pgTable("contact_messages", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// ─── Links (Linktree clone) ───
+
+export const links = pgTable("links", {
+  id: serial("id").primaryKey(),
+  title: varchar("title", { length: 255 }).notNull(),
+  url: text("url").notNull(),
+  icon: varchar("icon", { length: 50 }),
+  sortOrder: integer("sort_order").default(0),
+  isVisible: boolean("is_visible").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date()),
+});
+
 // ─── Type exports ───
 
 export type Profile = typeof profile.$inferSelect;
@@ -265,3 +280,6 @@ export type ContactMessage = typeof contactMessages.$inferSelect;
 export type NewContactMessage = typeof contactMessages.$inferInsert;
 
 export type User = typeof user.$inferSelect;
+
+export type Link = typeof links.$inferSelect;
+export type NewLink = typeof links.$inferInsert;

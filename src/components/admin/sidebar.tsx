@@ -9,6 +9,7 @@ import {
   MessageSquare,
   Mail,
   Link2,
+  Link as LinkIcon,
   LogOut,
   Users,
 } from "lucide-react";
@@ -36,6 +37,7 @@ const navItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/dashboard/profile", icon: User, label: "Profile" },
   { href: "/dashboard/socials", icon: Link2, label: "Social Links" },
+  { href: "/dashboard/links", icon: LinkIcon, label: "Linktree Links" },
   { href: "/dashboard/projects", icon: FolderKanban, label: "Projects" },
   { href: "/dashboard/skills", icon: Zap, label: "Skills" },
   { href: "/dashboard/experience", icon: Briefcase, label: "Experience" },

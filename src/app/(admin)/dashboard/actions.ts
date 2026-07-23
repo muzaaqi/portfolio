@@ -10,6 +10,7 @@ import {
   guestbook,
   contactMessages,
   user,
+  links,
 } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { revalidateTag } from "next/cache";
@@ -121,6 +122,43 @@ export async function deleteSocialLink(id: number) {
   await requireAdmin();
   await db.delete(socialLinks).where(eq(socialLinks.id, id));
   invalidateTag("socials");
+  return { success: true };
+}
+
+// ─── Links ───
+
+export async function createLink(data: {
+  title: string;
+  url: string;
+  icon?: string;
+  sortOrder?: number;
+}) {
+  await requireAdmin();
+  await db.insert(links).values(data);
+  invalidateTag("links");
+  return { success: true };
+}
+
+export async function updateLink(
+  id: number,
+  data: {
+    title?: string;
+    url?: string;
+    icon?: string;
+    sortOrder?: number;
+    isVisible?: boolean;
+  },
+) {
+  await requireAdmin();
+  await db.update(links).set(data).where(eq(links.id, id));
+  invalidateTag("links");
+  return { success: true };
+}
+
+export async function deleteLink(id: number) {
+  await requireAdmin();
+  await db.delete(links).where(eq(links.id, id));
+  invalidateTag("links");
   return { success: true };
 }
 
@@ -312,6 +350,7 @@ const reorderTableMap = {
   socialLinks: { table: socialLinks, tag: "socials" },
   projects: { table: projects, tag: "projects" },
   experiences: { table: experiences, tag: "experiences" },
+  links: { table: links, tag: "links" },
 } as const;
 
 export async function reorderItems(
