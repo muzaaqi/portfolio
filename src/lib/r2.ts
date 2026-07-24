@@ -4,6 +4,8 @@ import {
   DeleteObjectCommand,
 } from "@aws-sdk/client-s3";
 
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+
 const s3 = new S3Client({
   region: "auto",
   endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
@@ -12,6 +14,23 @@ const s3 = new S3Client({
     secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
   },
 });
+
+export async function getSignedUploadUrl(
+  key: string,
+  contentType: string,
+  expiresIn = 3600
+): Promise<{ uploadUrl: string; publicUrl: string }> {
+  const command = new PutObjectCommand({
+    Bucket: process.env.R2_BUCKET_NAME!,
+    Key: key,
+    ContentType: contentType,
+  });
+
+  const uploadUrl = await getSignedUrl(s3, command, { expiresIn });
+  const publicUrl = `${process.env.R2_PUBLIC_URL}/${key}`;
+
+  return { uploadUrl, publicUrl };
+}
 
 export async function uploadToR2(
   file: Buffer,

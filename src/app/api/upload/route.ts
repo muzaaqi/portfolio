@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
-import { uploadToR2 } from "@/lib/r2";
+import { getSignedUploadUrl } from "@/lib/r2";
 import { randomUUID } from "crypto";
 
 export async function POST(request: NextRequest) {
@@ -13,18 +13,19 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const formData = await request.formData();
-  const file = formData.get("file") as File | null;
+  const { filename, contentType } = await request.json();
 
-  if (!file) {
-    return NextResponse.json({ error: "No file provided" }, { status: 400 });
+  if (!filename || !contentType) {
+    return NextResponse.json({ error: "Missing filename or contentType" }, { status: 400 });
   }
 
-  const buffer = Buffer.from(await file.arrayBuffer());
-  const ext = file.name.split(".").pop() ?? "bin";
+  const ext = filename.split(".").pop() ?? "bin";
   const key = `uploads/${randomUUID()}.${ext}`;
 
-  const url = await uploadToR2(buffer, key, file.type);
-
-  return NextResponse.json({ url, key });
+  try {
+    const { uploadUrl, publicUrl } = await getSignedUploadUrl(key, contentType);
+    return NextResponse.json({ uploadUrl, publicUrl, key });
+  } catch (e) {
+    return NextResponse.json({ error: "Failed to generate upload URL" }, { status: 500 });
+  }
 }

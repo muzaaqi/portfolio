@@ -246,6 +246,7 @@ export const links = pgTable("links", {
   url: text("url").notNull(),
   icon: varchar("icon", { length: 50 }),
   showBanner: boolean("show_banner").default(true),
+  customBannerUrl: text("custom_banner_url"),
   sortOrder: integer("sort_order").default(0),
   isVisible: boolean("is_visible").default(true),
   createdAt: timestamp("created_at").defaultNow(),

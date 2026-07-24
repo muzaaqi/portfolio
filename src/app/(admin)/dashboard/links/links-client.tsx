@@ -58,6 +58,7 @@ import { LucideIconPicker } from "@/components/admin/lucide-icon-picker";
 import type { Link } from "@/db/schema";
 import { useRouter } from "next/navigation";
 import { Spinner } from "@/components/ui/spinner";
+import { ImageUpload } from "@/components/admin/image-upload";
 import { Switch } from "@/components/ui/switch";
 import { useEffect } from "react";
 
@@ -219,7 +220,7 @@ function LinkRow({
           <div className="mt-2 flex items-center gap-2">
             <span className="inline-block w-2 h-2 rounded-full bg-green-500"></span> 
             <span className="text-xs text-muted-foreground">Banner Active</span>
-            <BannerPreview url={link.url} />
+            <BannerPreview link={link} />
           </div>
         )}
       </TableCell>
@@ -281,16 +282,20 @@ function LinkRow({
   );
 }
 
-function BannerPreview({ url }: { url: string }) {
-  const [imgUrl, setImgUrl] = useState<string | null>(null);
+function BannerPreview({ link }: { link: Link }) {
+  const [imgUrl, setImgUrl] = useState<string | null>(link.customBannerUrl ?? null);
 
   useEffect(() => {
+    if (link.customBannerUrl) {
+      setImgUrl(link.customBannerUrl);
+      return;
+    }
     import("../actions").then((m) => {
-      m.fetchOgImage(url).then((res) => {
+      m.fetchOgImage(link.url).then((res) => {
         if (res) setImgUrl(res);
       });
     });
-  }, [url]);
+  }, [link.url, link.customBannerUrl]);
 
   if (!imgUrl) return null;
 
@@ -315,6 +320,7 @@ function LinkForm({
     url: link?.url ?? "",
     icon: link?.icon ?? "",
     showBanner: link?.showBanner ?? true,
+    customBannerUrl: link?.customBannerUrl ?? "",
   });
 
   async function handleSubmit(e: React.FormEvent) {
@@ -375,6 +381,16 @@ function LinkForm({
           onCheckedChange={(checked) => setForm((f) => ({ ...f, showBanner: checked }))}
         />
       </div>
+      {form.showBanner && (
+        <div className="space-y-2">
+          <Label>Custom Banner (Optional)</Label>
+          <p className="text-xs text-muted-foreground mb-2">Upload a custom image to override the auto-fetched Open Graph banner.</p>
+          <ImageUpload
+            value={form.customBannerUrl}
+            onChange={(url) => setForm((f) => ({ ...f, customBannerUrl: url }))}
+          />
+        </div>
+      )}
       <div className="flex gap-3">
         <DialogClose asChild>
           <Button type="button" variant="outline" className="flex-1">

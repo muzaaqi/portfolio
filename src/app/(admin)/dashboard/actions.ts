@@ -132,6 +132,7 @@ export async function createLink(data: {
   url: string;
   icon?: string;
   showBanner?: boolean;
+  customBannerUrl?: string;
   sortOrder?: number;
 }) {
   await requireAdmin();
@@ -147,6 +148,7 @@ export async function updateLink(
     url?: string;
     icon?: string;
     showBanner?: boolean;
+    customBannerUrl?: string;
     sortOrder?: number;
     isVisible?: boolean;
   },
