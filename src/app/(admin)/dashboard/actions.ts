@@ -13,13 +13,14 @@ import {
   links,
 } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { revalidateTag } from "next/cache";
+import { revalidateTag, revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { uploadToR2 } from "@/lib/r2";
 import { generateOgImage } from "@/lib/og";
 
 function invalidateTag(tag: string) {
   revalidateTag(tag, { expire: 0 });
+  revalidatePath("/dashboard", "layout");
 }
 import { headers } from "next/headers";
 
@@ -361,12 +362,14 @@ export async function markMessageAsRead(id: number) {
     .update(contactMessages)
     .set({ isRead: true })
     .where(eq(contactMessages.id, id));
+  revalidatePath("/dashboard", "layout");
   return { success: true };
 }
 
 export async function deleteContactMessage(id: number) {
   await requireAdmin();
   await db.delete(contactMessages).where(eq(contactMessages.id, id));
+  revalidatePath("/dashboard", "layout");
   return { success: true };
 }
 
@@ -413,6 +416,7 @@ export async function updateUserRole(userId: string, role: string) {
     return { success: false, error: "Cannot change your own role." };
   }
   await db.update(user).set({ role }).where(eq(user.id, userId));
+  revalidatePath("/dashboard", "layout");
   return { success: true };
 }
 
@@ -433,6 +437,7 @@ export async function banUser(
       banExpires: expiresAt ?? null,
     })
     .where(eq(user.id, userId));
+  revalidatePath("/dashboard", "layout");
   return { success: true };
 }
 
@@ -442,6 +447,7 @@ export async function unbanUser(userId: string) {
     .update(user)
     .set({ banned: false, banReason: null, banExpires: null })
     .where(eq(user.id, userId));
+  revalidatePath("/dashboard", "layout");
   return { success: true };
 }
 
@@ -451,5 +457,6 @@ export async function deleteUser(userId: string) {
     return { success: false, error: "Cannot delete yourself." };
   }
   await db.delete(user).where(eq(user.id, userId));
+  revalidatePath("/dashboard", "layout");
   return { success: true };
 }
