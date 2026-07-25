@@ -107,6 +107,13 @@ export const profile = pgTable("profile", {
   heroTagline: text("hero_tagline"),
   heroDescriptor: text("hero_descriptor"),
   githubUsername: varchar("github_username", { length: 100 }),
+  
+  // Link page specific settings
+  linkName: varchar("link_name", { length: 255 }),
+  linkBio: text("link_bio"),
+  linkProfileImageUrl: text("link_profile_image_url"),
+  linkSocialPosition: varchar("link_social_position", { length: 10 }).default("bottom"),
+
   updatedAt: timestamp("updated_at")
     .defaultNow()
     .$onUpdate(() => new Date()),

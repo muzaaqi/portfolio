@@ -133,17 +133,40 @@ export default async function LinktreePage() {
     notFound();
   }
 
+  const displayName = profile.linkName || profile.name;
+  const displayBio = profile.linkBio || profile.shortBio || profile.bio;
+  const displayImage = profile.linkProfileImageUrl || profile.profileImageUrl;
+  const socialPosition = profile.linkSocialPosition || "bottom";
+
+  const socialIconsBlock = socialLinks.length > 0 && (
+    <div className={`flex justify-center space-x-4 flex-wrap gap-y-4 ${socialPosition === "top" ? "pt-4 pb-2" : "pt-8 pb-4"}`}>
+      {socialLinks.map((social) => (
+        <Link
+          key={social.id}
+          href={social.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="p-3 bg-secondary/50 hover:bg-primary hover:text-primary-foreground rounded-full transition-all duration-300 hover:scale-110"
+          aria-label={social.platform}
+          title={social.platform}
+        >
+          {getIcon(social.icon || social.platform)}
+        </Link>
+      ))}
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-background flex flex-col items-center py-16 px-4 sm:px-6 lg:px-8">
       <div className="w-full max-w-md space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
         {/* Profile Section */}
         <div className="flex flex-col items-center text-center space-y-4">
-          {profile.profileImageUrl ? (
+          {displayImage ? (
             <div className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-primary/20 p-1">
               <div className="relative w-full h-full rounded-full overflow-hidden">
                 <Image
-                  src={profile.profileImageUrl}
-                  alt={profile.name}
+                  src={displayImage}
+                  alt={displayName}
                   fill
                   className="object-cover"
                   sizes="96px"
@@ -152,23 +175,22 @@ export default async function LinktreePage() {
             </div>
           ) : (
             <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center text-primary text-3xl font-bold">
-              {profile.name.charAt(0)}
+              {displayName.charAt(0)}
             </div>
           )}
           
           <div className="space-y-1">
-            <h1 className="text-2xl font-bold tracking-tight">{profile.name}</h1>
-            <p className="text-muted-foreground text-sm font-medium">
-              {profile.title}
-            </p>
+            <h1 className="text-2xl font-bold tracking-tight">{displayName}</h1>
           </div>
           
-          {(profile.shortBio || profile.bio) && (
+          {displayBio && (
             <p className="text-sm text-foreground/80 max-w-xs mx-auto">
-              {profile.shortBio || profile.bio}
+              {displayBio}
             </p>
           )}
         </div>
+
+        {socialPosition === "top" && socialIconsBlock}
 
         {/* Links Section */}
         <div className="w-full space-y-3 pt-4">
@@ -185,24 +207,7 @@ export default async function LinktreePage() {
           )}
         </div>
 
-        {/* Social Icons Footer */}
-        {socialLinks.length > 0 && (
-          <div className="pt-8 pb-4 flex justify-center space-x-4 flex-wrap gap-y-4">
-            {socialLinks.map((social) => (
-              <Link
-                key={social.id}
-                href={social.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-3 bg-secondary/50 hover:bg-primary hover:text-primary-foreground rounded-full transition-all duration-300 hover:scale-110"
-                aria-label={social.platform}
-                title={social.platform}
-              >
-                {getIcon(social.icon || social.platform)}
-              </Link>
-            ))}
-          </div>
-        )}
+        {socialPosition !== "top" && socialIconsBlock}
       </div>
     </div>
   );

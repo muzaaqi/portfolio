@@ -53,9 +53,10 @@ import {
   updateLink,
   deleteLink,
   reorderItems,
+  updateProfile,
 } from "../actions";
 import { LucideIconPicker } from "@/components/admin/lucide-icon-picker";
-import type { Link } from "@/db/schema";
+import type { Link, Profile } from "@/db/schema";
 import { useRouter } from "next/navigation";
 import { Spinner } from "@/components/ui/spinner";
 import { ImageUpload } from "@/components/admin/image-upload";
@@ -81,9 +82,10 @@ function LucideIconPreview({ name }: { name: string | null }) {
 
 interface LinksClientProps {
   links: Link[];
+  profile: Profile | null;
 }
 
-export function LinksClient({ links: initialLinks }: LinksClientProps) {
+export function LinksClient({ links: initialLinks, profile }: LinksClientProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Link | null>(null);
   const [links, setLinks] = useState(
@@ -123,6 +125,8 @@ export function LinksClient({ links: initialLinks }: LinksClientProps) {
           Add Link
         </Button>
       </div>
+
+      {profile && <LinkPageSettings profile={profile} />}
 
       <Table>
         <TableHeader>
@@ -405,3 +409,81 @@ function LinkForm({
     </form>
   );
 }
+
+function LinkPageSettings({ profile }: { profile: Profile }) {
+  const [isPending, setIsPending] = useState(false);
+  const router = useRouter();
+  const [form, setForm] = useState({
+    linkName: profile.linkName ?? "",
+    linkBio: profile.linkBio ?? "",
+    linkProfileImageUrl: profile.linkProfileImageUrl ?? "",
+    linkSocialPosition: profile.linkSocialPosition ?? "bottom",
+  });
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setIsPending(true);
+    try {
+      await updateProfile({
+        name: profile.name,
+        title: profile.title,
+        ...form,
+      });
+      toast.success("Link page settings saved!");
+      router.refresh();
+    } catch {
+      toast.error("Failed to save settings.");
+    } finally {
+      setIsPending(false);
+    }
+  }
+
+  return (
+    <div className="mb-8 rounded-lg border p-6">
+      <h2 className="text-xl font-semibold mb-4">Link Page Settings</h2>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="space-y-2">
+            <Label>Display Name (Optional)</Label>
+            <Input
+              value={form.linkName}
+              onChange={(e) => setForm({ ...form, linkName: e.target.value })}
+              placeholder="Overrides portfolio name"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Social Icons Position</Label>
+            <select
+              value={form.linkSocialPosition}
+              onChange={(e) => setForm({ ...form, linkSocialPosition: e.target.value })}
+              className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <option value="top">Top</option>
+              <option value="bottom">Bottom</option>
+            </select>
+          </div>
+        </div>
+        <div className="space-y-2">
+          <Label>Bio (Optional)</Label>
+          <Input
+            value={form.linkBio}
+            onChange={(e) => setForm({ ...form, linkBio: e.target.value })}
+            placeholder="Overrides portfolio bio"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label>Profile Picture (Optional)</Label>
+          <ImageUpload
+            value={form.linkProfileImageUrl}
+            onChange={(url) => setForm({ ...form, linkProfileImageUrl: url })}
+          />
+        </div>
+        <Button type="submit" disabled={isPending}>
+          {isPending && <Spinner className="mr-2 size-4" />}
+          Save Settings
+        </Button>
+      </form>
+    </div>
+  );
+}
+

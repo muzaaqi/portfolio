@@ -48,6 +48,10 @@ export async function updateProfile(data: {
   heroTagline?: string;
   heroDescriptor?: string;
   githubUsername?: string;
+  linkName?: string | null;
+  linkBio?: string | null;
+  linkProfileImageUrl?: string | null;
+  linkSocialPosition?: string | null;
 }) {
   await requireAdmin();
 
