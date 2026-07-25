@@ -123,7 +123,7 @@ export function LinksClient({ links: initialLinks, socialLinks, profile }: Links
   const router = useRouter();
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(PointerSensor),
     useSensor(KeyboardSensor),
   );
 
@@ -334,7 +334,7 @@ export function LinksClient({ links: initialLinks, socialLinks, profile }: Links
                 items={links.map((l) => l.id)}
                 strategy={verticalListSortingStrategy}
               >
-                <div className="space-y-3">
+                <div className="flex flex-col gap-3">
                   {links.map((link) => (
                     <SortableLinkCard
                       key={link.id}
@@ -410,7 +410,7 @@ function SortableLinkCard({
     <div
       ref={setNodeRef}
       style={style}
-      className="relative group flex flex-col p-4 bg-card hover:bg-accent/50 border border-border rounded-xl transition-all duration-300 overflow-visible"
+      className="relative group flex flex-col p-4 bg-card hover:bg-accent/50 border border-border rounded-xl transition-colors duration-300 overflow-visible"
     >
       <div 
         {...attributes}
