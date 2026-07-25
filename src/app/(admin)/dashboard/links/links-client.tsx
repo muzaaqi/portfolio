@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { Reorder, useDragControls } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,6 +43,8 @@ import {
   Mail, 
   Globe,
   ExternalLink,
+  Upload,
+  ArrowUpDown,
   type LucideIcon,
 } from "lucide-react";
 import { icons as allLucideIcons } from "lucide-react";
@@ -115,6 +117,64 @@ export function LinksClient({ links: initialLinks, socialLinks, profile }: Links
     setDialogOpen(true);
   }
 
+  const [profileForm, setProfileForm] = useState({
+    linkName: profile?.linkName ?? "",
+    linkBio: profile?.linkBio ?? "",
+    linkProfileImageUrl: profile?.linkProfileImageUrl ?? "",
+    linkSocialPosition: profile?.linkSocialPosition ?? "bottom",
+  });
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const saveProfile = async (updates: Partial<typeof profileForm>) => {
+    if (!profile) return;
+    const newForm = { ...profileForm, ...updates };
+    setProfileForm(newForm);
+    
+    try {
+      await updateProfile({
+        name: profile.name,
+        title: profile.title,
+        ...newForm,
+      });
+      router.refresh();
+    } catch {
+      toast.error("Failed to save profile.");
+    }
+  };
+
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ filename: file.name, contentType: file.type }),
+      });
+
+      if (res.ok) {
+        const { uploadUrl, publicUrl } = await res.json();
+        const uploadRes = await fetch(uploadUrl, {
+          method: "PUT",
+          body: file,
+          headers: { "Content-Type": file.type },
+        });
+
+        if (uploadRes.ok) {
+          await saveProfile({ linkProfileImageUrl: publicUrl });
+          toast.success("Profile image updated");
+        }
+      }
+    } catch {
+      toast.error("Upload failed");
+    } finally {
+      setIsUploading(false);
+    }
+  }
+
   const handleReorder = useCallback(async (newItems: Link[]) => {
     setLinks(newItems);
     const updates = newItems.map((item, index) => ({
@@ -128,13 +188,19 @@ export function LinksClient({ links: initialLinks, socialLinks, profile }: Links
     }
   }, []);
 
-  const displayName = profile?.linkName || profile?.name || "Anonymous";
-  const displayBio = profile?.linkBio || profile?.shortBio || profile?.bio || "";
-  const displayImage = profile?.linkProfileImageUrl || profile?.profileImageUrl;
-  const socialPosition = profile?.linkSocialPosition || "bottom";
+  const displayNameFallback = profile?.name || "Anonymous";
+  const displayBioFallback = profile?.shortBio || profile?.bio || "Add a bio...";
+  const displayImage = profileForm.linkProfileImageUrl || profile?.profileImageUrl;
+  const socialPosition = profileForm.linkSocialPosition;
 
   const socialIconsBlock = socialLinks && socialLinks.length > 0 && (
-    <div className={`flex justify-center space-x-4 flex-wrap gap-y-4 ${socialPosition === "top" ? "pt-4 pb-2" : "pt-8 pb-4"}`}>
+    <div className={`flex justify-center space-x-4 flex-wrap gap-y-4 relative group ${socialPosition === "top" ? "pt-4 pb-2" : "pt-8 pb-4"}`}>
+      <button
+        onClick={() => saveProfile({ linkSocialPosition: socialPosition === 'top' ? 'bottom' : 'top' })}
+        className="absolute -top-3 right-0 text-[10px] bg-muted text-muted-foreground px-2 py-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 hover:bg-primary hover:text-primary-foreground z-10"
+      >
+        <ArrowUpDown className="size-3" /> {socialPosition === 'top' ? 'Move Down' : 'Move Up'}
+      </button>
       {socialLinks.map((social) => (
         <a
           key={social.id}
@@ -161,43 +227,61 @@ export function LinksClient({ links: initialLinks, socialLinks, profile }: Links
         </Button>
       </div>
 
-      {profile && <LinkPageSettings profile={profile} />}
-
-      <div className="mt-12 bg-background border rounded-3xl py-16 px-4 flex flex-col items-center shadow-sm relative overflow-hidden">
+      <div className="mt-8 bg-background border rounded-3xl py-16 px-4 flex flex-col items-center shadow-sm relative overflow-hidden">
         <div className="w-full max-w-md space-y-8 relative z-10">
-          <div className="text-center mb-8">
-            <span className="inline-block bg-muted text-muted-foreground text-xs px-3 py-1 rounded-full uppercase tracking-wider font-semibold">Live Preview</span>
+          <div className="text-center mb-8 flex justify-center items-center gap-2">
+            <span className="inline-block bg-muted text-muted-foreground text-xs px-3 py-1 rounded-full uppercase tracking-wider font-semibold">Live Preview & Editor</span>
           </div>
 
           {/* Profile Section */}
-          <div className="flex flex-col items-center text-center space-y-4">
-            {displayImage ? (
-              <div className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-primary/20 p-1">
-                <div className="relative w-full h-full rounded-full overflow-hidden">
+          <div className="flex flex-col items-center text-center space-y-4 relative group/profile">
+            <div 
+              className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-primary/20 p-1 cursor-pointer group-hover/profile:border-primary/50 transition-colors"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <div className="relative w-full h-full rounded-full overflow-hidden">
+                {displayImage ? (
                   <Image
                     src={displayImage}
-                    alt={displayName}
+                    alt="Profile"
                     fill
                     className="object-cover"
                     sizes="96px"
                   />
+                ) : (
+                  <div className="w-full h-full bg-primary/10 flex items-center justify-center text-primary text-3xl font-bold">
+                    {(profileForm.linkName || displayNameFallback).charAt(0)}
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                  {isUploading ? <Spinner className="size-5 text-white" /> : <Upload className="size-5 text-white mb-1" />}
+                  <span className="text-[10px] text-white font-medium">Change</span>
                 </div>
               </div>
-            ) : (
-              <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center text-primary text-3xl font-bold">
-                {displayName.charAt(0)}
-              </div>
-            )}
+            </div>
+            <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
             
-            <div className="space-y-1">
-              <h1 className="text-2xl font-bold tracking-tight">{displayName}</h1>
+            <div className="w-full px-4">
+              <input
+                type="text"
+                value={profileForm.linkName}
+                onChange={(e) => setProfileForm({ ...profileForm, linkName: e.target.value })}
+                onBlur={() => saveProfile({ linkName: profileForm.linkName })}
+                placeholder={displayNameFallback}
+                className="text-2xl font-bold tracking-tight text-center bg-transparent border-b border-transparent hover:border-border focus:border-primary outline-none focus:ring-0 placeholder:text-foreground/30 w-full transition-colors pb-1"
+              />
             </div>
             
-            {displayBio && (
-              <p className="text-sm text-foreground/80 max-w-xs mx-auto">
-                {displayBio}
-              </p>
-            )}
+            <div className="w-full px-4">
+              <textarea
+                value={profileForm.linkBio}
+                onChange={(e) => setProfileForm({ ...profileForm, linkBio: e.target.value })}
+                onBlur={() => saveProfile({ linkBio: profileForm.linkBio })}
+                placeholder={displayBioFallback}
+                className="text-sm text-foreground/80 text-center bg-transparent border-b border-transparent hover:border-border focus:border-primary outline-none focus:ring-0 placeholder:text-foreground/30 w-full resize-none transition-colors overflow-hidden"
+                rows={2}
+              />
+            </div>
           </div>
 
           {socialPosition === "top" && socialIconsBlock}
@@ -520,79 +604,4 @@ function LinkForm({
   );
 }
 
-function LinkPageSettings({ profile }: { profile: Profile }) {
-  const [isPending, setIsPending] = useState(false);
-  const router = useRouter();
-  const [form, setForm] = useState({
-    linkName: profile.linkName ?? "",
-    linkBio: profile.linkBio ?? "",
-    linkProfileImageUrl: profile.linkProfileImageUrl ?? "",
-    linkSocialPosition: profile.linkSocialPosition ?? "bottom",
-  });
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setIsPending(true);
-    try {
-      await updateProfile({
-        name: profile.name,
-        title: profile.title,
-        ...form,
-      });
-      toast.success("Link page settings saved!");
-      router.refresh();
-    } catch {
-      toast.error("Failed to save settings.");
-    } finally {
-      setIsPending(false);
-    }
-  }
-
-  return (
-    <div className="mb-8 rounded-lg border p-6">
-      <h2 className="text-xl font-semibold mb-4">Link Page Settings</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="space-y-2">
-            <Label>Display Name (Optional)</Label>
-            <Input
-              value={form.linkName}
-              onChange={(e) => setForm({ ...form, linkName: e.target.value })}
-              placeholder="Overrides portfolio name"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Social Icons Position</Label>
-            <select
-              value={form.linkSocialPosition}
-              onChange={(e) => setForm({ ...form, linkSocialPosition: e.target.value })}
-              className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <option value="top">Top</option>
-              <option value="bottom">Bottom</option>
-            </select>
-          </div>
-        </div>
-        <div className="space-y-2">
-          <Label>Bio (Optional)</Label>
-          <Input
-            value={form.linkBio}
-            onChange={(e) => setForm({ ...form, linkBio: e.target.value })}
-            placeholder="Overrides portfolio bio"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label>Profile Picture (Optional)</Label>
-          <ImageUpload
-            value={form.linkProfileImageUrl}
-            onChange={(url) => setForm({ ...form, linkProfileImageUrl: url })}
-          />
-        </div>
-        <Button type="submit" disabled={isPending}>
-          {isPending && <Spinner className="mr-2 size-4" />}
-          Save Settings
-        </Button>
-      </form>
-    </div>
-  );
-}
