@@ -1,7 +1,22 @@
 "use client";
 
 import { useState, useCallback, useEffect, useRef } from "react";
-import { Reorder, useDragControls } from "motion/react";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -107,6 +122,11 @@ export function LinksClient({ links: initialLinks, socialLinks, profile }: Links
   );
   const router = useRouter();
 
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor),
+  );
+
   function handleEdit(link: Link) {
     setEditing(link);
     setDialogOpen(true);
@@ -175,18 +195,35 @@ export function LinksClient({ links: initialLinks, socialLinks, profile }: Links
     }
   }
 
-  const handleReorder = useCallback(async (newItems: Link[]) => {
-    setLinks(newItems);
-    const updates = newItems.map((item, index) => ({
-      id: item.id,
-      sortOrder: index,
-    }));
-    try {
-      await reorderItems("links", updates);
-    } catch {
-      toast.error("Failed to save order.");
-    }
-  }, []);
+  const handleDragEnd = useCallback(
+    async (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (!over || active.id === over.id) return;
+
+      const oldIndex = links.findIndex((l) => l.id === active.id);
+      const newIndex = links.findIndex((l) => l.id === over.id);
+
+      if (oldIndex === -1 || newIndex === -1) return;
+
+      const reordered = arrayMove(links, oldIndex, newIndex);
+      const updatedReordered = reordered.map((l, i) => ({
+        ...l,
+        sortOrder: i,
+      }));
+      setLinks(updatedReordered);
+
+      const updates = updatedReordered.map((l) => ({
+        id: l.id,
+        sortOrder: l.sortOrder!,
+      }));
+      try {
+        await reorderItems("links", updates);
+      } catch {
+        toast.error("Failed to save order.");
+      }
+    },
+    [links]
+  );
 
   const displayNameFallback = profile?.name || "Anonymous";
   const displayBioFallback = profile?.shortBio || profile?.bio || "Add a bio...";
@@ -288,30 +325,36 @@ export function LinksClient({ links: initialLinks, socialLinks, profile }: Links
 
           {/* Links Section */}
           <div className="w-full pt-4">
-            <Reorder.Group
-              axis="y"
-              values={links}
-              onReorder={handleReorder}
-              className="space-y-3"
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
             >
-              {links.map((link) => (
-                <LinkCard
-                  key={link.id}
-                  link={link}
-                  onEdit={() => handleEdit(link)}
-                  onDelete={async () => {
-                    await deleteLink(link.id);
-                    toast.success("Deleted.");
-                    router.refresh();
-                  }}
-                />
-              ))}
-              {links.length === 0 && (
-                <div className="text-center p-6 border border-dashed rounded-xl text-muted-foreground text-sm">
-                  No links added yet.
+              <SortableContext
+                items={links.map((l) => l.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <div className="space-y-3">
+                  {links.map((link) => (
+                    <SortableLinkCard
+                      key={link.id}
+                      link={link}
+                      onEdit={() => handleEdit(link)}
+                      onDelete={async () => {
+                        await deleteLink(link.id);
+                        toast.success("Deleted.");
+                        router.refresh();
+                      }}
+                    />
+                  ))}
+                  {links.length === 0 && (
+                    <div className="text-center p-6 border border-dashed rounded-xl text-muted-foreground text-sm">
+                      No links added yet.
+                    </div>
+                  )}
                 </div>
-              )}
-            </Reorder.Group>
+              </SortableContext>
+            </DndContext>
           </div>
 
           {socialPosition !== "top" && socialIconsBlock}
@@ -338,7 +381,7 @@ export function LinksClient({ links: initialLinks, socialLinks, profile }: Links
   );
 }
 
-function LinkCard({
+function SortableLinkCard({
   link,
   onEdit,
   onDelete,
@@ -347,26 +390,41 @@ function LinkCard({
   onEdit: () => void;
   onDelete: () => void;
 }) {
-  const controls = useDragControls();
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: link.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 1 : 0,
+  };
 
   return (
-    <Reorder.Item
-      value={link}
-      dragListener={false}
-      dragControls={controls}
+    <div
+      ref={setNodeRef}
+      style={style}
       className="relative group flex flex-col p-4 bg-card hover:bg-accent/50 border border-border rounded-xl transition-all duration-300 overflow-visible"
     >
       <div 
-        className="absolute -left-12 top-1/2 -translate-y-1/2 cursor-grab active:cursor-grabbing p-2 text-muted-foreground/50 hover:text-foreground transition-colors hidden sm:flex"
-        onPointerDown={(e) => controls.start(e)}
+        {...attributes}
+        {...listeners}
+        className="absolute -left-12 top-1/2 -translate-y-1/2 cursor-grab active:cursor-grabbing p-2 text-muted-foreground/50 hover:text-foreground transition-colors hidden sm:flex touch-none"
       >
         <GripVertical className="size-5" />
       </div>
       
       {/* Mobile drag handle */}
       <div 
-        className="absolute left-2 top-1/2 -translate-y-1/2 cursor-grab active:cursor-grabbing p-1 text-muted-foreground/50 hover:text-foreground transition-colors sm:hidden z-10"
-        onPointerDown={(e) => controls.start(e)}
+        {...attributes}
+        {...listeners}
+        className="absolute left-2 top-1/2 -translate-y-1/2 cursor-grab active:cursor-grabbing p-1 text-muted-foreground/50 hover:text-foreground transition-colors sm:hidden z-10 touch-none"
       >
         <GripVertical className="size-4" />
       </div>
@@ -476,7 +534,7 @@ function LinkCard({
           <ExternalLink className="size-4 text-muted-foreground" />
         </div>
       </div>
-    </Reorder.Item>
+    </div>
   );
 }
 
