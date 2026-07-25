@@ -149,24 +149,21 @@ export function LinksClient({ links: initialLinks, socialLinks, profile }: Links
 
     setIsUploading(true);
     try {
+      const formData = new FormData();
+      formData.append("file", file);
+
       const res = await fetch("/api/upload", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ filename: file.name, contentType: file.type }),
+        body: formData,
       });
 
       if (res.ok) {
-        const { uploadUrl, publicUrl } = await res.json();
-        const uploadRes = await fetch(uploadUrl, {
-          method: "PUT",
-          body: file,
-          headers: { "Content-Type": file.type },
-        });
-
-        if (uploadRes.ok) {
-          await saveProfile({ linkProfileImageUrl: publicUrl });
-          toast.success("Profile image updated");
-        }
+        const { publicUrl } = await res.json();
+        await saveProfile({ linkProfileImageUrl: publicUrl });
+        toast.success("Profile image updated");
+      } else {
+        const err = await res.json();
+        toast.error(err.error || "Upload failed");
       }
     } catch {
       toast.error("Upload failed");

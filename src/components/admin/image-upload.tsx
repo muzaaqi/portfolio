@@ -22,31 +22,20 @@ export function ImageUpload({ value, onChange }: ImageUploadProps) {
 
     setIsUploading(true);
     try {
+      const formData = new FormData();
+      formData.append("file", file);
+
       const res = await fetch("/api/upload", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          filename: file.name,
-          contentType: file.type,
-        }),
+        body: formData,
       });
 
       if (res.ok) {
-        const { uploadUrl, publicUrl } = await res.json();
-        
-        const uploadRes = await fetch(uploadUrl, {
-          method: "PUT",
-          body: file,
-          headers: {
-            "Content-Type": file.type,
-          },
-        });
-
-        if (uploadRes.ok) {
-          onChange(publicUrl);
-        } else {
-          console.error("Direct upload to R2 failed");
-        }
+        const { publicUrl } = await res.json();
+        onChange(publicUrl);
+      } else {
+        const err = await res.json();
+        console.error("Upload failed", err);
       }
     } catch {
       console.error("Upload failed");
