@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Reorder, useDragControls } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,14 +12,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -44,6 +36,13 @@ import {
   Pencil,
   GripVertical,
   MoreHorizontal,
+  Link as LinkIcon,
+  Github, 
+  Twitter, 
+  Linkedin, 
+  Mail, 
+  Globe,
+  ExternalLink,
   type LucideIcon,
 } from "lucide-react";
 import { icons as allLucideIcons } from "lucide-react";
@@ -56,12 +55,12 @@ import {
   updateProfile,
 } from "../actions";
 import { LucideIconPicker } from "@/components/admin/lucide-icon-picker";
-import type { Link, Profile } from "@/db/schema";
+import type { Link, Profile, SocialLink } from "@/db/schema";
 import { useRouter } from "next/navigation";
 import { Spinner } from "@/components/ui/spinner";
 import { ImageUpload } from "@/components/admin/image-upload";
 import { Switch } from "@/components/ui/switch";
-import { useEffect } from "react";
+import Image from "next/image";
 
 // Convert kebab-case slug to PascalCase for lookup
 function toPascal(slug: string) {
@@ -71,21 +70,34 @@ function toPascal(slug: string) {
     .join("");
 }
 
-function LucideIconPreview({ name }: { name: string | null }) {
-  if (!name) return null;
+const getIcon = (iconName: string | null) => {
+  if (!iconName) return <LinkIcon className="w-5 h-5" />;
+
+  switch (iconName.toLowerCase()) {
+    case "x":
+      return <Twitter className="w-5 h-5" />;
+    case "website":
+      return <Globe className="w-5 h-5" />;
+    case "email":
+      return <Mail className="w-5 h-5" />;
+  }
+
   const IconComp = allLucideIcons[
-    toPascal(name) as keyof typeof allLucideIcons
+    toPascal(iconName) as keyof typeof allLucideIcons
   ] as LucideIcon | undefined;
-  if (IconComp) return <IconComp className="text-muted-foreground size-4" />;
-  return null;
-}
+  
+  if (IconComp) return <IconComp className="w-5 h-5" />;
+  
+  return <LinkIcon className="w-5 h-5" />;
+};
 
 interface LinksClientProps {
   links: Link[];
+  socialLinks: SocialLink[];
   profile: Profile | null;
 }
 
-export function LinksClient({ links: initialLinks, profile }: LinksClientProps) {
+export function LinksClient({ links: initialLinks, socialLinks, profile }: LinksClientProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Link | null>(null);
   const [links, setLinks] = useState(
@@ -116,6 +128,29 @@ export function LinksClient({ links: initialLinks, profile }: LinksClientProps) 
     }
   }, []);
 
+  const displayName = profile?.linkName || profile?.name || "Anonymous";
+  const displayBio = profile?.linkBio || profile?.shortBio || profile?.bio || "";
+  const displayImage = profile?.linkProfileImageUrl || profile?.profileImageUrl;
+  const socialPosition = profile?.linkSocialPosition || "bottom";
+
+  const socialIconsBlock = socialLinks && socialLinks.length > 0 && (
+    <div className={`flex justify-center space-x-4 flex-wrap gap-y-4 ${socialPosition === "top" ? "pt-4 pb-2" : "pt-8 pb-4"}`}>
+      {socialLinks.map((social) => (
+        <a
+          key={social.id}
+          href={social.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="p-3 bg-secondary/50 hover:bg-primary hover:text-primary-foreground rounded-full transition-all duration-300 hover:scale-110"
+          aria-label={social.platform}
+          title={social.platform}
+        >
+          {getIcon(social.icon || social.platform)}
+        </a>
+      ))}
+    </div>
+  );
+
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
@@ -128,45 +163,76 @@ export function LinksClient({ links: initialLinks, profile }: LinksClientProps) 
 
       {profile && <LinkPageSettings profile={profile} />}
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-10" />
-            <TableHead>Title</TableHead>
-            <TableHead>URL</TableHead>
-            <TableHead className="w-12" />
-          </TableRow>
-        </TableHeader>
-        <Reorder.Group
-          as="tbody"
-          axis="y"
-          values={links}
-          onReorder={handleReorder}
-        >
-          {links.map((link) => (
-            <LinkRow
-              key={link.id}
-              link={link}
-              onEdit={() => handleEdit(link)}
-              onDelete={async () => {
-                await deleteLink(link.id);
-                toast.success("Deleted.");
-                router.refresh();
-              }}
-            />
-          ))}
-          {links.length === 0 && (
-            <TableRow>
-              <TableCell
-                colSpan={4}
-                className="text-muted-foreground text-center"
-              >
-                No links yet.
-              </TableCell>
-            </TableRow>
-          )}
-        </Reorder.Group>
-      </Table>
+      <div className="mt-12 bg-background border rounded-3xl py-16 px-4 flex flex-col items-center shadow-sm relative overflow-hidden">
+        <div className="w-full max-w-md space-y-8 relative z-10">
+          <div className="text-center mb-8">
+            <span className="inline-block bg-muted text-muted-foreground text-xs px-3 py-1 rounded-full uppercase tracking-wider font-semibold">Live Preview</span>
+          </div>
+
+          {/* Profile Section */}
+          <div className="flex flex-col items-center text-center space-y-4">
+            {displayImage ? (
+              <div className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-primary/20 p-1">
+                <div className="relative w-full h-full rounded-full overflow-hidden">
+                  <Image
+                    src={displayImage}
+                    alt={displayName}
+                    fill
+                    className="object-cover"
+                    sizes="96px"
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center text-primary text-3xl font-bold">
+                {displayName.charAt(0)}
+              </div>
+            )}
+            
+            <div className="space-y-1">
+              <h1 className="text-2xl font-bold tracking-tight">{displayName}</h1>
+            </div>
+            
+            {displayBio && (
+              <p className="text-sm text-foreground/80 max-w-xs mx-auto">
+                {displayBio}
+              </p>
+            )}
+          </div>
+
+          {socialPosition === "top" && socialIconsBlock}
+
+          {/* Links Section */}
+          <div className="w-full pt-4">
+            <Reorder.Group
+              axis="y"
+              values={links}
+              onReorder={handleReorder}
+              className="space-y-3"
+            >
+              {links.map((link) => (
+                <LinkCard
+                  key={link.id}
+                  link={link}
+                  onEdit={() => handleEdit(link)}
+                  onDelete={async () => {
+                    await deleteLink(link.id);
+                    toast.success("Deleted.");
+                    router.refresh();
+                  }}
+                />
+              ))}
+              {links.length === 0 && (
+                <div className="text-center p-6 border border-dashed rounded-xl text-muted-foreground text-sm">
+                  No links added yet.
+                </div>
+              )}
+            </Reorder.Group>
+          </div>
+
+          {socialPosition !== "top" && socialIconsBlock}
+        </div>
+      </div>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-md">
@@ -188,7 +254,7 @@ export function LinksClient({ links: initialLinks, profile }: LinksClientProps) 
   );
 }
 
-function LinkRow({
+function LinkCard({
   link,
   onEdit,
   onDelete,
@@ -201,47 +267,30 @@ function LinkRow({
 
   return (
     <Reorder.Item
-      as="tr"
       value={link}
       dragListener={false}
       dragControls={controls}
-      className="border-border/50 border-b"
+      className="relative group flex flex-col p-4 bg-card hover:bg-accent/50 border border-border rounded-xl transition-all duration-300 overflow-visible"
     >
-      <TableCell className="w-10">
-        <button
-          className="cursor-grab touch-none active:cursor-grabbing"
-          onPointerDown={(e) => controls.start(e)}
-        >
-          <GripVertical className="text-muted-foreground size-4" />
-        </button>
-      </TableCell>
-      <TableCell>
-        <div className="flex items-center gap-2">
-          <LucideIconPreview name={link.icon} />
-          <span className="font-medium">{link.title}</span>
-        </div>
-        {link.showBanner && (
-          <div className="mt-2 flex items-center gap-2">
-            <span className="inline-block w-2 h-2 rounded-full bg-green-500"></span> 
-            <span className="text-xs text-muted-foreground">Banner Active</span>
-            <BannerPreview link={link} />
-          </div>
-        )}
-      </TableCell>
-      <TableCell className="max-w-xs truncate">
-        <a
-          href={link.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-primary underline"
-        >
-          {link.url}
-        </a>
-      </TableCell>
-      <TableCell>
+      <div 
+        className="absolute -left-12 top-1/2 -translate-y-1/2 cursor-grab active:cursor-grabbing p-2 text-muted-foreground/50 hover:text-foreground transition-colors hidden sm:flex"
+        onPointerDown={(e) => controls.start(e)}
+      >
+        <GripVertical className="size-5" />
+      </div>
+      
+      {/* Mobile drag handle */}
+      <div 
+        className="absolute left-2 top-1/2 -translate-y-1/2 cursor-grab active:cursor-grabbing p-1 text-muted-foreground/50 hover:text-foreground transition-colors sm:hidden z-10"
+        onPointerDown={(e) => controls.start(e)}
+      >
+        <GripVertical className="size-4" />
+      </div>
+
+      <div className="absolute -right-12 top-1/2 -translate-y-1/2 hidden sm:block">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon-sm">
+            <Button variant="ghost" size="icon-sm" className="h-8 w-8 text-muted-foreground">
               <MoreHorizontal className="size-4" />
             </Button>
           </DropdownMenuTrigger>
@@ -281,7 +330,68 @@ function LinkRow({
             </AlertDialog>
           </DropdownMenuContent>
         </DropdownMenu>
-      </TableCell>
+      </div>
+
+      {/* Mobile actions */}
+      <div className="absolute right-2 top-2 sm:hidden z-10">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="secondary" size="icon-sm" className="h-6 w-6 text-muted-foreground rounded-full opacity-70">
+              <MoreHorizontal className="size-3" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={onEdit}>
+              <Pencil className="mr-2 size-4" />
+              Edit
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <DropdownMenuItem
+                  variant="destructive"
+                  onSelect={(e) => e.preventDefault()}
+                >
+                  <Trash2 className="mr-2 size-4" />
+                  Delete
+                </DropdownMenuItem>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete link?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Remove {link.title} link permanently.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={onDelete}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
+      {link.showBanner && (
+         <BannerPreview link={link} />
+      )}
+      <div className="flex items-center w-full relative sm:px-0 px-6">
+        <div className="flex-shrink-0 mr-4 text-muted-foreground group-hover:text-primary transition-colors">
+          {getIcon(link.icon)}
+        </div>
+        <div className="flex-grow text-center font-medium sm:mr-9">
+          {link.title}
+        </div>
+        <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity hidden sm:block">
+          <ExternalLink className="size-4 text-muted-foreground" />
+        </div>
+      </div>
     </Reorder.Item>
   );
 }
@@ -304,7 +414,7 @@ function BannerPreview({ link }: { link: Link }) {
   if (!imgUrl) return null;
 
   return (
-    <div className="h-8 w-16 relative rounded overflow-hidden border border-border">
+    <div className="w-full h-32 mb-4 rounded-md overflow-hidden relative border border-border/50">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={imgUrl} alt="Banner Preview" className="object-cover w-full h-full" />
     </div>
@@ -486,4 +596,3 @@ function LinkPageSettings({ profile }: { profile: Profile }) {
     </div>
   );
 }
-
